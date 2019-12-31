@@ -1,3 +1,15 @@
+Development
+
+### `node server.js`
+### `npm start`
+
+Production:
+### `npm build`
+### `node server.js`
+
+
+## CREATE-REACT-APP documentation -----------------
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
