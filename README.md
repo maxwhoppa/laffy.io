@@ -2,12 +2,13 @@
 
 ## Development
 
-## `node server.js` `npm start`
+`node server.js`
+ `npm start`
 
 ## Production
 
-## `npm build` `node server.js`
-
+`npm build`
+`node server.js`
 
 ## CREATE-REACT-APP documentation -----------------
 
