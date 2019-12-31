@@ -1,11 +1,12 @@
-Development
+# Laffy.io
 
-### `node server.js`
-### `npm start`
+## Development
 
-Production:
-### `npm build`
-### `node server.js`
+## `node server.js` `npm start`
+
+## Production
+
+## `npm build` `node server.js`
 
 
 ## CREATE-REACT-APP documentation -----------------
