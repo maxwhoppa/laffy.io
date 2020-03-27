@@ -37,7 +37,13 @@ io.on('connection', function(socket) {
   socket.on('Offer', SendOffer)
   socket.on('Answer', SendAnswer)
   socket.on('disconnect', Disconnect)
+  socket.on('RandomLoss', RandomLoss)
 })
+
+function RandomLoss(){
+  //TODO record the loss to the user's account if logged in 
+  this.to(room).emit('RandomEndGame')
+}
 
 function Disconnect() {
   if (clients > 0)

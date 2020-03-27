@@ -1,26 +1,19 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
-import {WebcamComponent} from './components/WebcamComponent'
+// TODO: import '@tensorflow/tfjs-node'; -- This never worked due to aws-sdk https://github.com/webpack/webpack/issues/8400
+import {HomePage} from './components/HomePage'
 
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <WebcamComponent />
         <p>
-          Edit <code>src/App.js</code> and save to reload.
+          Welcome to Laffy.io
         </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <img src={logo} className="App-logo" alt="logo" />
+        <HomePage />
       </header>
     </div>
   );

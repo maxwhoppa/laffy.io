@@ -1,4 +1,6 @@
 // Load models and weights
+
+//TODO: fix this so that we can make this faster with native C++ library
 import * as faceapi from 'face-api.js';
 
 export async function loadModels() {
