@@ -102,7 +102,6 @@ export class VideoAnalyzer extends Component<VideoAnalyzerProps,VideoAnalyzerSta
         return (
             <div>
                 <this.Smiled userSmiled={this.state.userSmiled} numFaces={this.state.numFaces}/>
-                <RandomChat userSmiled={this.state.userSmiled} numFaces={this.state.numFaces}/>
             </div>
         )
     }

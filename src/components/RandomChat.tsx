@@ -2,6 +2,7 @@
 import React, {Component} from 'react';
 
 type RandomChatProps = {
+    peerVideo: HTMLVideoElement | null
     userSmiled: boolean
     numFaces: number
   }

@@ -2,6 +2,8 @@
 
 import React, {Component} from 'react';
 import {VideoAnalyzer} from '../components/VideoAnalyzer'
+import { Lobby } from '../components/Lobby';
+
 
 import {loadModels} from '../api/face';
 import {socketStuff} from '../api/sockets';
@@ -10,7 +12,7 @@ import {socketStuff} from '../api/sockets';
 type WebcamComponentState = {
   localStream: HTMLVideoElement | null
   userSmiled: boolean
-  ready: boolean
+  faceDetectionActive: boolean
 }
 
 export class WebcamComponent extends Component<React.HTMLAttributes<HTMLVideoElement>, WebcamComponentState> {
@@ -25,7 +27,7 @@ export class WebcamComponent extends Component<React.HTMLAttributes<HTMLVideoEle
     this.state = {
       localStream: null,
       userSmiled: false,
-      ready: false
+      faceDetectionActive: false
     }
     
     console.log('loading models in constructor')
@@ -34,7 +36,7 @@ export class WebcamComponent extends Component<React.HTMLAttributes<HTMLVideoEle
   }
 
   handleFaceDetectionChange(faceDetectionActive: boolean){
-    this.setState({ready:faceDetectionActive});
+    this.setState({faceDetectionActive:faceDetectionActive});
   }
 
   componentDidMount(){
@@ -42,7 +44,7 @@ export class WebcamComponent extends Component<React.HTMLAttributes<HTMLVideoEle
   
   componentDidUpdate(prevState: any) {
     console.log("rerendered webcamcomponent")
-    if (this.state.ready && !prevState.ready)
+    if (this.state.faceDetectionActive && !prevState.faceDetectionActive)
       socketStuff(this.video?.srcObject, this.peerVideo)
   }
 
@@ -64,22 +66,14 @@ export class WebcamComponent extends Component<React.HTMLAttributes<HTMLVideoEle
   }
 
 
+//TODO, Pass data to this component from Video Analyzer so that webComp can pass to -> randosComp & friendsComp 
 
   render(){
     return (
     <div>
-            <button onClick={() => this.setState({ready:true})}>Start</button>
-      <video ref={ref => { this.video = ref; }} muted autoPlay={true}            
-       style={{
-                position: "absolute",
-                width: "100%",
-                left: 0,
-                top: 0,
-                opacity: !this.state.ready?0:.75,
-                transition: "opacity, 2s ease-in-out"
-              }}/>
-      <video ref={ref => { this.peerVideo = ref; }} autoPlay={true} />
-      <VideoAnalyzer faceDetectionActive={this.state.ready} localStream={this.state.localStream} handleFaceDetectionChange={this.handleFaceDetectionChange}/>
+      <video ref={ref => { this.video = ref; }} muted autoPlay={true}       style={{transform: 'scaleX(-1)' }}/>
+      <video ref={ref => { this.peerVideo = ref; }} autoPlay={true} style={{transform: 'scaleX(-1)' }} />
+      <VideoAnalyzer faceDetectionActive={this.state.faceDetectionActive} localStream={this.state.localStream} handleFaceDetectionChange={this.handleFaceDetectionChange}/>
     </div>
     )}
 }

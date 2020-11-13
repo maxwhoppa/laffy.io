@@ -2,6 +2,7 @@
 import React, {Component} from 'react';
 // import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import {WebcamComponent} from './WebcamComponent'
+import logo from '../logo.svg';
 
 
 type HomePageState = {
@@ -48,9 +49,16 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
         }
         else {
             return (
+            <div>
+            <p>
+            Welcome to Laffy.io
+            </p>
+              <img src={logo} className="App-logo" alt="logo" />
                 <div>
                     <button onClick={props.handleClick}/>
                 </div>
+            </div>
+
             )
         }
     }
@@ -58,7 +66,21 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
     render(){
         return (
             <div>
-                <this.Choices renderChoice={this.state.renderChoice} handleClick={this.handleClick}/>
+                {(this.state.renderChoice == -1) ?this.Home(this.props) : <WebcamComponent/>} 
+            </div>
+        )
+    }
+
+    Home(props: any){
+        return (
+            <div>
+            <p>
+            Welcome to Laffy.io
+            </p>
+              <img src={logo} className="App-logo" alt="logo" />
+                <div>
+                    <button onClick={() => this.setState({renderChoice: 0})}/>
+                </div>
             </div>
         )
     }
