@@ -71,7 +71,9 @@ export class WebcamComponent extends Component<React.HTMLAttributes<HTMLVideoEle
   render(){
     return (
     <div>
-      <video ref={ref => { this.video = ref; }} muted autoPlay={true}       style={{transform: 'scaleX(-1)' }}/>
+      <video ref={ref => { this.video = ref; }} muted autoPlay={true}  style={
+        {transform: 'scaleX(-1)',
+        backgroundColor:'grey'                }}/>
       <video ref={ref => { this.peerVideo = ref; }} autoPlay={true} style={{transform: 'scaleX(-1)' }} />
       <VideoAnalyzer faceDetectionActive={this.state.faceDetectionActive} localStream={this.state.localStream} handleFaceDetectionChange={this.handleFaceDetectionChange}/>
     </div>

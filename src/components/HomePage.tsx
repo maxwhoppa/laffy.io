@@ -66,7 +66,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
     render(){
         return (
             <div>
-                {(this.state.renderChoice == -1) ?this.Home(this.props) : <WebcamComponent/>} 
+                {(this.state.renderChoice === -1) ?this.Home(this.props) : <WebcamComponent/>} 
             </div>
         )
     }
@@ -75,7 +75,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
         return (
             <div>
             <p>
-            Welcome to Laffy.io
+            NEXT OBJECTIVE: OMEGLE-LIKE CSS FORMAT
             </p>
               <img src={logo} className="App-logo" alt="logo" />
                 <div>
