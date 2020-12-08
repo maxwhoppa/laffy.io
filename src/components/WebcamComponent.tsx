@@ -36,7 +36,7 @@ export class WebcamComponent extends Component<React.HTMLAttributes<HTMLVideoEle
   }
 
   handleFaceDetectionChange(faceDetectionActive: boolean){
-    this.setState({faceDetectionActive:faceDetectionActive});
+      this.setState({faceDetectionActive:faceDetectionActive});
   }
 
   componentDidMount(){
@@ -70,11 +70,11 @@ export class WebcamComponent extends Component<React.HTMLAttributes<HTMLVideoEle
 
   render(){
     return (
-    <div>
-      <video ref={ref => { this.video = ref; }} muted autoPlay={true}  style={
+    <div className="h-100 media-body">
+      <video ref={ref => { this.video = ref; }} muted autoPlay={true}  className="h-50 w-100 border rounded"style={
         {transform: 'scaleX(-1)',
-        backgroundColor:'grey'                }}/>
-      <video ref={ref => { this.peerVideo = ref; }} autoPlay={true} style={{transform: 'scaleX(-1)' }} />
+        backgroundColor:'black'                }}/>
+      <video ref={ref => { this.peerVideo = ref; }} autoPlay={true} className="h-50 w-100 border rounded" style={{transform: 'scaleX(-1)',backgroundColor:'black'  }} />
       <VideoAnalyzer faceDetectionActive={this.state.faceDetectionActive} localStream={this.state.localStream} handleFaceDetectionChange={this.handleFaceDetectionChange}/>
     </div>
     )}
