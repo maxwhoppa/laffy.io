@@ -2,7 +2,6 @@
 
 import React, {Component} from 'react';
 import {VideoAnalyzer} from '../components/VideoAnalyzer'
-import { Lobby } from '../components/Lobby';
 
 
 import {loadModels} from '../api/face';
@@ -14,6 +13,8 @@ type WebcamComponentState = {
   userSmiled: boolean
   faceDetectionActive: boolean
 }
+
+type WebcamComponentProps = {}
 
 export class WebcamComponent extends Component<React.HTMLAttributes<HTMLVideoElement>, WebcamComponentState> {
   video: HTMLVideoElement | null = null

@@ -2,11 +2,34 @@
 import React, {Component} from 'react';
 // import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import {WebcamComponent} from './WebcamComponent'
-import logo from '../logo.svg';
 
 
 type HomePageState = {
-    renderChoice: number
+    // Gamestate:
+    // -1 no camera, invalid position
+    // 0 camera on, no connection
+    // 1 camera on, connected with facial recognition -- game in session with another client
+    // 2 camera on, connected with other client, no game in session
+    gameState: number
+
+    // CameraActive:
+    // True if camera is on
+    // False if camera is off
+    cameraActive: boolean
+
+    // FaceDetectionActive:
+    // true if facial recognition model is active
+    // false if not (can be due to no video)
+    faceDetectionActive: boolean
+
+    // UserSmiled:
+    // true if a user is smiling
+    // false if none are
+    userSmiled: boolean
+
+    // NumFaces:
+    // number of people currently being analized by the model
+    numFaces: number
   }
 
 type HomePageProps = {}
@@ -18,16 +41,17 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
     constructor(props: HomePageProps){
         super(props)
         this.state = {
-            renderChoice: -1
+            gameState: -1,
+            cameraActive: false,
+            faceDetectionActive: false,
+            userSmiled: false,
+            numFaces: 0
         }
 
-        this.handleClick = this.handleClick.bind(this)
+        this.nextButtonClick = this.nextButtonClick.bind(this)
     }
 
     componentDidMount() {
-        this.setState({
-            renderChoice: -1
-        })
     }
 
     componentDidUpdate(prevProps: HomePageProps) {
@@ -37,41 +61,21 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
     componentWillUnmount() {
     }
 
-    handleClick(){
+    nextButtonClick(gameState : number){
         this.setState({
-            renderChoice: 0
+            gameState: gameState
         })
-    }
-
-    Choices(props: any) {
-        if (props.renderChoice === 0){
-            return <WebcamComponent/>
-        }
-        else {
-            return (
-            <div>
-            <p>
-            Welcome to Laffy.io
-            </p>
-              <img src={logo} className="App-logo" alt="logo" />
-                <div>
-                    <button onClick={props.handleClick}/>
-                </div>
-            </div>
-
-            )
-        }
     }
     
     render(){
         return (
             // <div>
-            //     {(this.state.renderChoice === -1) ?this.Home(this.props) : <WebcamComponent/>} 
+            //     {(this.state.gameState === -1) ?this.Home(this.props) : <WebcamComponent/>} 
             // </div>
             <div className="container-fluid" style={{height:"100%", padding: "0px"}}>
             <div className="w-100 h-100 row"style={{marginLeft:"-10px"}}>
               <div className="w-100 h-100 col-sm-4">
-              {(this.state.renderChoice === -1) ?this.Home(this.props) : <WebcamComponent/>} 
+              {(this.state.gameState === -1) ?this.Home(this.props) : <WebcamComponent/>} 
               </div>
               <div className="col-6 h-100">
                 <div className="mb-2 h-100">
@@ -86,9 +90,9 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
               </div>
               <div className="col" >
                 <div className="mb-2 h-100" >
-                  <img className="rounded mx-auto d-block" src="LAFFY_APP_MODEL.png" style={{width: "100%",position:"absolute", top:0, paddingRight: "20px"}}/>
+                  <img className="rounded mx-auto d-block" src="LAFFY_APP_MODEL.png" alt='laffy logo' style={{width: "100%",position:"absolute", top:0, paddingRight: "20px"}}/>
                     <div className="input-group mb-3" style={{position:"absolute", bottom:0, paddingRight: "20px"}}>
-                        <button type="button" className="btn btn-secondary w-100 " onClick={() => this.handleClick()}>Next</button>
+                        <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick(0)}>Next</button>
                     </div>
                 </div>
               </div>
