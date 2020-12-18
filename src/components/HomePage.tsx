@@ -1,7 +1,8 @@
 // This component is the logic behind the random video chat given the video data and socket data provided in props 
 import React, {Component} from 'react';
 // import { BrowserRouter as Router, Route, Link } from "react-router-dom";
-import {WebcamComponent} from './WebcamComponent'
+import {WebcamComponentMemo} from './WebcamComponent'
+import {VideoAnalyzerState} from './VideoAnalyzer'
 
 
 type HomePageState = {
@@ -40,6 +41,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
     
     constructor(props: HomePageProps){
         super(props)
+        this.handleWebcamChange = this.handleWebcamChange.bind(this);
         this.state = {
             gameState: -1,
             cameraActive: false,
@@ -66,6 +68,25 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             gameState: gameState
         })
     }
+
+    handleWebcamChange(VideoAnalyzerState: VideoAnalyzerState){
+        if (VideoAnalyzerState.userSmiled && !this.state.userSmiled)
+            console.log('printed from homepage: YOU SMILeD BiTCh')
+
+        if (VideoAnalyzerState.numFaces === 0 && this.state.numFaces !== 0)
+            console.log('no faces detected')
+
+            if (VideoAnalyzerState.numFaces !== 0 && this.state.numFaces === 0)
+            console.log('face detected')
+
+        this.setState({
+            cameraActive: VideoAnalyzerState.cameraActive,
+            faceDetectionActive: VideoAnalyzerState.faceDetectionActive,
+            userSmiled: VideoAnalyzerState.userSmiled,
+            numFaces: VideoAnalyzerState.numFaces,
+        });
+
+    }
     
     render(){
         return (
@@ -75,12 +96,15 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             <div className="container-fluid" style={{height:"100%", padding: "0px"}}>
             <div className="w-100 h-100 row"style={{marginLeft:"-10px"}}>
               <div className="w-100 h-100 col-sm-4">
-              {(this.state.gameState === -1) ?this.Home(this.props) : <WebcamComponent/>} 
+              {(this.state.gameState === -1) ?this.Home() : <WebcamComponentMemo
+              handleWebcamChange={this.handleWebcamChange}
+              />
+              } 
               </div>
               <div className="col-6 h-100">
                 <div className="mb-2 h-100">
                   <h1 className="Display text-center">Win Streak</h1>
-                  <h3 className="Display text-center">0</h3>
+            <h3 className="Display text-center">{this.state.numFaces}</h3>
                   <div className="input-group mb-3 fixed-bottom" style={{position : "absolute", bottom: 0}}>
                     <div style={{marginBottom:"10px",backgroundColor:"whitesmoke", height:"40vh"}} className="border w-100">
                     </div>
@@ -101,7 +125,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
         )
     }
 
-    Home(props: any){
+    Home(){
         return (
         <div className="h-100 media-body">
             <video autoPlay={true} style={{backgroundColor:"black"}} className="h-50 w-100 border rounded">

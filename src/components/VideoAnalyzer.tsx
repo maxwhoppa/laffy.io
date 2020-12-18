@@ -3,7 +3,7 @@
 import React, {Component} from 'react';
 import * as canvas from 'canvas';
 import * as faceapi from 'face-api.js';
-import { RandomChat } from './RandomChat';
+import {WebcamComponentProps} from './WebcamComponent'
 
 // patch nodejs environment, we need to provide an implementation of
 // HTMLCanvasElement and HTMLImageElement
@@ -21,30 +21,22 @@ faceapi.env.monkeyPatch({
 
 type VideoAnalyzerProps = {
     localStream: HTMLVideoElement | null
-    handleFaceDetectionChange: any
-    faceDetectionActive: boolean
+    handleWebcamChange: any
   }
 
-type VideoAnalyzerState = {
-    userSmiled: boolean
-    numFaces: number
+export type VideoAnalyzerState = {
+  cameraActive: boolean,
+  faceDetectionActive: boolean,
+  numFaces: number,
+  userSmiled: boolean,
 }
 
-export class VideoAnalyzer extends Component<VideoAnalyzerProps,VideoAnalyzerState> {
+ export class VideoAnalyzer extends Component<VideoAnalyzerProps,VideoAnalyzerState> {
     interval : any
 
     
     constructor(props:VideoAnalyzerProps){
         super(props)
-        this.handleChange = this.handleChange.bind(this);
-        this.state = {
-            userSmiled: false,
-            numFaces: 0,
-        }
-    }
-
-    handleChange(active: boolean){
-      this.props.handleFaceDetectionChange(active)
     }
 
     async componentDidMount() {
@@ -60,51 +52,35 @@ export class VideoAnalyzer extends Component<VideoAnalyzerProps,VideoAnalyzerSta
     }
 
     async detectSmiles(video: HTMLVideoElement | null) {
-        if (video){
-         const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-          .withFaceLandmarks().withFaceExpressions()
+      if (video){
+        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks().withFaceExpressions()
 
-          //only hits this point when we have face-api working in browser
+        //only hits this point when we have face-api working in browser
 
-
-          if (!this.props.faceDetectionActive){
-            this.handleChange(true);
-          }
-      
-          if (detections.length !== this.state.numFaces){
-            this.setState({numFaces: detections.length})
-          }
+        var currentState : VideoAnalyzerState = {
+          cameraActive: true,
+          faceDetectionActive: true,
+          numFaces: detections.length,
+          userSmiled: false,
+        }
 
 
-          detections.forEach(e => {
-            if (e.expressions.happy >= .6){
-              if (!this.state.userSmiled)
-                this.setState({userSmiled: true})
-          }
-          else {
-            if (this.state.userSmiled )
-              this.setState({userSmiled: false})
+        detections.forEach(e => {
+          if (e.expressions.happy >= .6){
+            currentState.userSmiled = true;
+            console.log('smiled')
           }
         })
-      }
+
+        this.props.handleWebcamChange(currentState)
+
+      }// else {}
+      //
+      //may have to do some error handling -- if the video is stopped .... 
     }
 
-    Smiled(props: any) {
-      if (props.numFaces === 0)
-      return <h1>Please show your face</h1>
-      if (props.userSmiled === true)
-      return (<h1>YOU SMILED! :D</h1>)
-      else 
-      return <h1>You didnt smile :( </h1>
-    }
-
-    render(){
-        return (
-            <div>
-                <this.Smiled userSmiled={this.state.userSmiled} numFaces={this.state.numFaces}/>
-            </div>
-        )
-    }
-
-
+  render(){
+    return null
+  }
 }

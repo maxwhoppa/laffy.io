@@ -10,25 +10,22 @@ import {socketStuff} from '../api/sockets';
 
 type WebcamComponentState = {
   localStream: HTMLVideoElement | null
-  userSmiled: boolean
-  faceDetectionActive: boolean
 }
 
-type WebcamComponentProps = {}
+export type WebcamComponentProps = {
+  handleWebcamChange: any
+}
 
-export class WebcamComponent extends Component<React.HTMLAttributes<HTMLVideoElement>, WebcamComponentState> {
+export class WebcamComponent extends Component<WebcamComponentProps, WebcamComponentState> {
   video: HTMLVideoElement | null = null
   peerVideo: HTMLVideoElement | null = null
 
 
-  constructor(props: React.HTMLAttributes<HTMLVideoElement>){
+  constructor(props: WebcamComponentProps){
     super(props)
 
-    this.handleFaceDetectionChange = this.handleFaceDetectionChange.bind(this);
     this.state = {
       localStream: null,
-      userSmiled: false,
-      faceDetectionActive: false
     }
     
     console.log('loading models in constructor')
@@ -36,17 +33,12 @@ export class WebcamComponent extends Component<React.HTMLAttributes<HTMLVideoEle
     this.startVideo()
   }
 
-  handleFaceDetectionChange(faceDetectionActive: boolean){
-      this.setState({faceDetectionActive:faceDetectionActive});
-  }
-
   componentDidMount(){
   }
   
-  componentDidUpdate(prevState: any) {
+  componentDidUpdate(prevProps: WebcamComponentProps) {
     console.log("rerendered webcamcomponent")
-    if (this.state.faceDetectionActive && !prevState.faceDetectionActive)
-      socketStuff(this.video?.srcObject, this.peerVideo)
+    // socketStuff(this.video?.srcObject, this.peerVideo)
   }
 
   componentWillUnmount() {
@@ -66,9 +58,6 @@ export class WebcamComponent extends Component<React.HTMLAttributes<HTMLVideoEle
 
   }
 
-
-//TODO, Pass data to this component from Video Analyzer so that webComp can pass to -> randosComp & friendsComp 
-
   render(){
     return (
     <div className="h-100 media-body">
@@ -76,8 +65,10 @@ export class WebcamComponent extends Component<React.HTMLAttributes<HTMLVideoEle
         {transform: 'scaleX(-1)',
         backgroundColor:'black'                }}/>
       <video ref={ref => { this.peerVideo = ref; }} autoPlay={true} className="h-50 w-100 border rounded" style={{transform: 'scaleX(-1)',backgroundColor:'black'  }} />
-      <VideoAnalyzer faceDetectionActive={this.state.faceDetectionActive} localStream={this.state.localStream} handleFaceDetectionChange={this.handleFaceDetectionChange}/>
+      <VideoAnalyzer localStream={this.state.localStream} handleWebcamChange={this.props.handleWebcamChange}/>
     </div>
     )}
 }
 
+
+export const WebcamComponentMemo = React.memo(WebcamComponent)
