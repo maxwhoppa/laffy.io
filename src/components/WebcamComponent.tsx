@@ -1,11 +1,12 @@
 // This component is the main component for Random video chatting
 
 import React, {Component} from 'react';
-import {VideoAnalyzer} from '../components/VideoAnalyzer'
+import {VideoAnalyzer, VideoAnalyzerState} from '../components/VideoAnalyzer'
 
 
 import {loadModels} from '../api/face';
 import {socketStuff} from '../api/sockets';
+import { configure } from '@testing-library/react';
 
 
 type WebcamComponentState = {
@@ -14,6 +15,7 @@ type WebcamComponentState = {
 
 export type WebcamComponentProps = {
   handleWebcamChange: any
+  configureVideo: any
 }
 
 export class WebcamComponent extends Component<WebcamComponentProps, WebcamComponentState> {
@@ -53,9 +55,15 @@ export class WebcamComponent extends Component<WebcamComponentProps, WebcamCompo
         this.video.srcObject = stream;       
       }
       this.setState({localStream: this.video})
+      this.props.configureVideo(this.video, this.peerVideo)
+      this.props.handleWebcamChange({
+        cameraActive: true,
+        faceDetectionActive: false,
+        userSmiled: false,
+        numFaces: 0,
+      })
     })
     .catch(() => console.log('user did not allow for video'))
-
   }
 
   render(){
