@@ -3,7 +3,6 @@
 import React, {Component} from 'react';
 import * as canvas from 'canvas';
 import * as faceapi from 'face-api.js';
-import {WebcamComponentProps} from './WebcamComponent'
 
 // patch nodejs environment, we need to provide an implementation of
 // HTMLCanvasElement and HTMLImageElement
@@ -31,7 +30,7 @@ export type VideoAnalyzerState = {
   userSmiled: boolean,
 }
 
- export class VideoAnalyzer extends Component<VideoAnalyzerProps,VideoAnalyzerState> {
+ export class VideoAnalyzer extends Component<VideoAnalyzerProps> {
     interval : any
 
     

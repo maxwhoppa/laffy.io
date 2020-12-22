@@ -3,10 +3,10 @@ import React, {Component} from 'react';
 // import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import {WebcamComponentMemo} from './WebcamComponent'
 import {VideoAnalyzerState} from './VideoAnalyzer'
-import {socketStuff} from '../api/sockets';
+import {socket, socketStuff} from '../api/sockets';
 
 
-type HomePageState = {
+export type HomePageState = {
     // Gamestate:
     // -1 no camera, invalid position
     // 0 camera on, no connection
@@ -44,6 +44,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
         super(props)
         this.handleWebcamChange = this.handleWebcamChange.bind(this);
         this.configureVideo = this.configureVideo.bind(this);
+        this.changeGameState = this.changeGameState.bind(this);
         this.state = {
             gameState: -1,
             cameraActive: false,
@@ -59,8 +60,6 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
     }
 
     componentDidUpdate(prevState: HomePageState) {
-        // if (this.state.gameState === 1 && prevState.gameState !== 1)
-        //     socketStuff(this.video?.srcObject, this.peerVideo)
     }
 
     componentWillUnmount() {
@@ -69,6 +68,13 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
     nextButtonClick(){
         if (this.state.gameState === 0 && this.state.faceDetectionActive){
             socketStuff(this.video?.srcObject, this.peerVideo)
+            this.setState({gameState:1})
+        }
+        else if (this.state.gameState === 1){
+            //usersmiled
+        }
+        else if (this.state.gameState === 2){
+            //go to state 0
         }
     }
 
@@ -108,6 +114,10 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
         }
     }
 
+    changeGameState(gs: number){
+        this.setState({gameState:gs})
+    }
+
     configureVideo(video: HTMLVideoElement, peerVideo: HTMLVideoElement){
         this.video = video;
         this.peerVideo = peerVideo;
@@ -129,12 +139,12 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
               </div>
               <div className="col-6 h-100">
                 <div className="mb-2 h-100">
-                  <h1 className="Display text-center">Faces Detected</h1>
+                  <h1 className="Display text-center">Players Detected</h1>
             <h3 className="Display text-center">{this.state.numFaces}</h3>
                   <div className="input-group mb-3 fixed-bottom" style={{position : "absolute", bottom: 0}}>
                     <div style={{marginBottom:"10px",backgroundColor:"whitesmoke", height:"40vh"}} className="border w-100">
                     </div>
-                    <input type="text" className="form-control" placeholder="Press Enter To Send Message" aria-label="Username" aria-describedby="basic-addon1"/>
+                    {this.Chatbox()}
                   </div>
                 </div>
               </div>
@@ -152,13 +162,39 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
     }
 
     Button(){
-        if (this.state.gameState === -1)
+        var phrase = "";
+        if (this.state.gameState === -1){
+            if (this.state.faceDetectionActive == false){
+                phrase = "Loading..."
+            }
+            else if (this.state.numFaces == 0){
+                phrase = "No Faces Detected"
+            }
             return (
-                    <button type="button" className="btn btn-secondary w-100 " disabled onClick={() => this.nextButtonClick()}>Next</button>
-                )
-        else 
-            return (
-                    <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>Next</button>
+            <button type="button" className="btn btn-secondary w-100 " disabled onClick={() => this.nextButtonClick()}>{phrase}</button>
             )
+        }
+        else if (this.state.gameState === 0 ){
+            phrase = "Start"
+            return (
+                <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+                )
+        } else if (this.state.gameState === 1){
+
+        }
+    }
+
+
+    Chatbox(){
+        if (this.state.gameState === 1){
+            return(
+                <input type="text" className="form-control" placeholder="Press Enter To Send Message" aria-label="Username" aria-describedby="basic-addon1"/>
+            )
+        }
+        else {
+            return(
+                <input type="text" className="form-control" disabled placeholder="Press Enter To Send Message" aria-label="Username" aria-describedby="basic-addon1"/>
+            )
+        }
     }
 }

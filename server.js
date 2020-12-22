@@ -21,16 +21,17 @@ app.get('/a', function (req, res) {
     res.send('Welcome')
   });
 
+queue = []
 
 io.on('connection', function(socket) {
-  room = parseInt(clients/2)
   socket.on('NewClient', function() {
-      // room = parseInt(clients/2)
+    if (queue.length > 0){
+      room = Math.floor(Math.random()*100000000)
       io.to(room).emit('CreatePeer')
       socket.join(room);
-      if (clients >= 4){
-          io.to(room).emit('SessionActive')
-      }
+      queue[0].join(room)
+      queue.shift()
+    }
       clients++;
     });
 

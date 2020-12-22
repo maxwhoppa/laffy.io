@@ -1,5 +1,6 @@
 import socketIOClient from "socket.io-client";
-const socket = socketIOClient('http://localhost:8080/')
+export const socket = socketIOClient('http://localhost:8080/')
+
 
 let Peer = require('simple-peer')
 
@@ -9,12 +10,18 @@ let client = {
   RandomEndGame: false
 }
 
+// caller loses the game
+export function userSmiled(){
+    
+}
+
 export function socketStuff(stream : any , peerVideo: any) {
 
     console.log('socket stuff')
     
     //just remove this and call it seperately :) 
     socket.emit('NewClient')
+
 
         function InitPeer(type: any ){
             let peer = new Peer({initiator:(type === 'init')? true: false, stream: stream, trickle: false})
@@ -68,7 +75,6 @@ export function socketStuff(stream : any , peerVideo: any) {
         socket.on('BackAnswer', SignalAnswer)
         socket.on('SessionActive', SessionActive)
         socket.on('CreatePeer', MakePeer)
-        socket.on('RandomEndGame', RandomEndGame)
 }
 
 export default client
