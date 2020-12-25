@@ -3,7 +3,8 @@ import React, {Component} from 'react';
 // import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import {WebcamComponentMemo} from './WebcamComponent'
 import {VideoAnalyzerState} from './VideoAnalyzer'
-import {socket, socketStuff} from '../api/sockets';
+import {leaveRoom, socket, socketStuff} from '../api/sockets';
+import { animateScroll } from "react-scroll";
 
 
 export type HomePageState = {
@@ -11,6 +12,7 @@ export type HomePageState = {
     // -1 no camera, invalid position
     // 0 camera on, no connection
     // 1 camera on, connected with facial recognition -- game in session with another client
+    // 1.5 Are you sure -- next button hit once 
     // 2 camera on, connected with other client, no game in session
     gameState: number
 
@@ -32,6 +34,9 @@ export type HomePageState = {
     // NumFaces:
     // number of people currently being analized by the model
     numFaces: number
+
+
+    chatInput: string
   }
 
 type HomePageProps = {}
@@ -45,24 +50,35 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
         this.handleWebcamChange = this.handleWebcamChange.bind(this);
         this.configureVideo = this.configureVideo.bind(this);
         this.changeGameState = this.changeGameState.bind(this);
+        this.onKeyPress = this.onKeyPress.bind(this);
+
         this.state = {
             gameState: -1,
             cameraActive: false,
             faceDetectionActive: false,
             userSmiled: false,
-            numFaces: 0
+            numFaces: 0,
+            chatInput: ''
         }
 
         this.nextButtonClick = this.nextButtonClick.bind(this)
     }
 
+    onKeyPress(event: any){
+        if(event.keyCode === 27) {
+            this.nextButtonClick();
+        }
+    }
+
     componentDidMount() {
+        document.addEventListener("keydown", this.onKeyPress, false);
     }
 
     componentDidUpdate(prevState: HomePageState) {
     }
 
     componentWillUnmount() {
+        document.removeEventListener("keydown", this.onKeyPress, false);
     }
 
     nextButtonClick(){
@@ -71,7 +87,11 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             this.setState({gameState:1})
         }
         else if (this.state.gameState === 1){
-            //usersmiled
+            this.setState({gameState:1.5})
+        }
+        else if (this.state.gameState === 1.5){
+            leaveRoom()
+            this.setState({gameState:0})
         }
         else if (this.state.gameState === 2){
             //go to state 0
@@ -88,7 +108,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             else if (gameState === 0 && VideoAnalyzerState.numFaces === 0){
                 gameState = -1
             }
-            else if (gameState === 1){
+            else if (gameState === 1 || gameState === 1.5){
 
             }
             else if (gameState === 2){
@@ -139,13 +159,9 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
               </div>
               <div className="col-6 h-100">
                 <div className="mb-2 h-100">
-                  <h1 className="Display text-center">Players Detected</h1>
-            <h3 className="Display text-center">{this.state.numFaces}</h3>
-                  <div className="input-group mb-3 fixed-bottom" style={{position : "absolute", bottom: 0}}>
-                    <div style={{marginBottom:"10px",backgroundColor:"whitesmoke", height:"40vh"}} className="border w-100">
-                    </div>
-                    {this.Chatbox()}
-                  </div>
+                    <h1 className="Display text-center">Players Detected</h1>
+                    <h3 className="Display text-center">{this.state.numFaces}</h3>
+                    <Chat gameState={this.state.gameState}/>
                 </div>
               </div>
               <div className="col" >
@@ -164,10 +180,10 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
     Button(){
         var phrase = "";
         if (this.state.gameState === -1){
-            if (this.state.faceDetectionActive == false){
+            if (this.state.faceDetectionActive === false){
                 phrase = "Loading..."
             }
-            else if (this.state.numFaces == 0){
+            else if (this.state.numFaces === 0){
                 phrase = "No Faces Detected"
             }
             return (
@@ -175,26 +191,129 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             )
         }
         else if (this.state.gameState === 0 ){
-            phrase = "Start"
+            phrase = "Start (esc)"
             return (
                 <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
-                )
-        } else if (this.state.gameState === 1){
-
+            )
+        } 
+        else if (this.state.gameState === 1){
+            phrase = "Next (esc)"
+            return (
+                <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+            )
+        }
+        else if (this.state.gameState === 1.5){
+            phrase = "Are You Sure? (esc)"
+            return (
+                <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+            )
         }
     }
 
 
     Chatbox(){
-        if (this.state.gameState === 1){
+        if (this.state.gameState === 1 || this.state.gameState === 1.5){
             return(
-                <input type="text" className="form-control" placeholder="Press Enter To Send Message" aria-label="Username" aria-describedby="basic-addon1"/>
+                <input type="text" id='textEntry' onKeyDown={this.onKeyPress} className="form-control" placeholder="Press Enter To Send Message" aria-label="Username" aria-describedby="basic-addon1"/>
             )
         }
         else {
             return(
-                <input type="text" className="form-control" disabled placeholder="Press Enter To Send Message" aria-label="Username" aria-describedby="basic-addon1"/>
+                <input type="text" id='textEntry' onKeyDown={this.onKeyPress} className="form-control" disabled placeholder="Press Enter To Send Message" aria-label="Username" aria-describedby="basic-addon1"/>
             )
         }
     }
+}
+
+type ChatProps = {
+    gameState: number
+}
+type ChatState = {
+    log: Array<string>,
+    inputValue: string,
+    typing: boolean,
+}
+
+export class Chat extends Component<ChatProps,ChatState> {
+    constructor(props: ChatProps){
+        super(props);
+        this.state = ({
+            log: [],
+            inputValue: '',
+            typing: false,
+        })
+        this.onKeyPress = this.onKeyPress.bind(this);
+        this.sendMessage = this.sendMessage.bind(this);
+        this.handleChange = this.handleChange.bind(this);
+        this.scrollToBottom = this.scrollToBottom.bind(this);
+    }
+
+    scrollToBottom() {
+        animateScroll.scrollToBottom({
+          containerId: "chatlog"
+        });
+    }
+
+    onKeyPress(event: any){
+        if ( (event.key === "Enter" || event.key === "NumpadEnter")){
+            this.sendMessage(this.state.inputValue)
+            this.setState({
+                inputValue: ''
+            })
+        }
+    }
+
+    componentDidMount(){
+        socket.on('typing', (data : any) =>{
+            this.setState({typing:true})
+        })
+        socket.on('stopped_typing', (data : any) =>{
+            this.setState({typing:false})
+        })
+        socket.on('new_message', (data: any) => {
+            var log = this.state.log.concat('Opponent: '+ data.message);
+            this.setState({log:log});
+        })
+        this.scrollToBottom();
+    }
+
+    sendMessage(message: string){
+        message = 'You: ' + message
+        var log = this.state.log.concat(message)
+        this.setState({log: log})
+        socket.emit('new_message', {message: message});
+    }
+
+    handleChange(e: any){
+        if (e.target.value !== ''){
+            socket.emit('typing')
+        }
+        else {
+            socket.emit('stopped_typing')
+        }
+        this.setState({
+            inputValue: e.target.value
+        })
+    }
+
+    render(){
+        var chatbox =  <input type="text" id='textEntry' value={this.state.inputValue} onChange={this.handleChange} onKeyDown={this.onKeyPress} className="form-control" disabled placeholder="Press Enter To Send Message" aria-label="Username" aria-describedby="basic-addon1"/>
+        
+        if (this.props.gameState === 1 || this.props.gameState === 1.5 )
+            chatbox =  <input type="text" id='textEntry' value={this.state.inputValue} onChange={this.handleChange} onKeyDown={this.onKeyPress} className="form-control" placeholder="Press Enter To Send Message" aria-label="Username" aria-describedby="basic-addon1"/>
+
+        return(
+            <div className="input-group mb-3 fixed-bottom" style={{position : "absolute", bottom: 0}}>
+                <div style={{marginBottom:"10px",backgroundColor:"whitesmoke", height:"40vh"}} className="overflow-auto border w-100">
+                <ul id='chatlog' className="list-group">
+                    {this.state.log.map((message,i) => <li className="list-group-item" key={i} style={{textAlign:'left', border:'none', backgroundColor:"whitesmoke"}}>{message}</li>)}
+                </ul>
+                </div>
+                {chatbox}
+            </div>
+        )
+    }
+
+
+
 }

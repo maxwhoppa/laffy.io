@@ -17,38 +17,67 @@ app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
-app.get('/a', function (req, res) {
-    res.send('Welcome')
-  });
-
-queue = []
+queue = {}
+room = 0
 
 io.on('connection', function(socket) {
   socket.on('NewClient', function() {
-    if (queue.length > 0){
-      room = Math.floor(Math.random()*100000000)
+    if (Object.keys(queue).length > 0){
+      room = Object.keys(queue)[0]
+      peerSocket = queue[room]
       io.to(room).emit('CreatePeer')
       socket.join(room);
-      queue[0].join(room)
-      queue.shift()
+      io.to(room).emit('CreatePeer')
+      peerSocket.join(room)
+      delete queue[room]
+    }
+    else {
+      queue[socket.id+'chat'] = socket
+      room++
     }
       clients++;
     });
 
   socket.on('Offer', SendOffer)
   socket.on('Answer', SendAnswer)
-  socket.on('disconnect', Disconnect)
+
+  socket.on('leave', function() {
+    room = Object.keys(socket.rooms).filter(item => item!=socket.id)
+      console.log('leaving room: '+room)
+      socket.leave(room)
+      if (queue.hasOwnProperty(room))
+        delete queue[room]
+  });
+  
+  socket.on('disconnect', function() {
+    if (clients > 0)
+      clients--
+    
+    room = Object.keys(socket.rooms).filter(item => item!=socket.id)
+    if (queue.hasOwnProperty(room))
+      delete queue[room]
+
+  });
+
+
   socket.on('RandomLoss', RandomLoss)
+
+  socket.on('new_message', (data) => {
+    socket.to(Object.keys(socket.rooms).filter(item => item!=socket.id)[0]).emit('new_message', {message : data.message})
+  })
+
+  socket.on('typing', (data) => {
+    socket.to(Object.keys(socket.rooms).filter(item => item!=socket.id)[0]).emit('typing')
+  })
+
+  socket.on('stopped_typing', (data) => {
+    socket.to(Object.keys(socket.rooms).filter(item => item!=socket.id)[0]).emit('stopped_typing')
+  })
 })
 
 function RandomLoss(){
   //TODO record the loss to the user's account if logged in 
   this.to(room).emit('RandomEndGame')
-}
-
-function Disconnect() {
-  if (clients > 0)
-    clients--
 }
 
 function SendOffer(offer) {

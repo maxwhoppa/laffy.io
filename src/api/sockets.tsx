@@ -7,12 +7,13 @@ let Peer = require('simple-peer')
 let client = {
   peer: new Peer(),
   gotAnswer:false,
-  RandomEndGame: false
 }
 
 // caller loses the game
-export function userSmiled(){
-    
+export function leaveRoom(){
+    socket.emit('leave')
+    console.log('leaving')
+    client.peer.destroy()
 }
 
 export function socketStuff(stream : any , peerVideo: any) {
@@ -21,6 +22,9 @@ export function socketStuff(stream : any , peerVideo: any) {
     
     //just remove this and call it seperately :) 
     socket.emit('NewClient')
+
+    client.peer = new Peer();
+    client.gotAnswer = false;
 
 
         function InitPeer(type: any ){
@@ -41,6 +45,7 @@ export function socketStuff(stream : any , peerVideo: any) {
             client.gotAnswer = false
             let peer = InitPeer('init')
             peer.on('signal', function(data: any){
+                if (data.renegotiate || data.transceiverRequest) return
                 if (!client.gotAnswer){
                     socket.emit('Offer', data)
                 }
@@ -52,6 +57,7 @@ export function socketStuff(stream : any , peerVideo: any) {
         function FrontAnswer(offer:any){
             let peer = InitPeer("notInit")
             peer.on('signal', (data :any) => {
+                if (data.renegotiate || data.transceiverRequest) return
                 socket.emit('Answer', data)
             })
             peer.signal(offer)
@@ -63,17 +69,9 @@ export function socketStuff(stream : any , peerVideo: any) {
             peer.signal(answer)
         }
 
-        function SessionActive(){
-            document.write('Session Active. Please try again later')
-        }
-
-        function RandomEndGame(){
-            client.RandomEndGame = true;
-        }
 
         socket.on('BackOffer', FrontAnswer)
         socket.on('BackAnswer', SignalAnswer)
-        socket.on('SessionActive', SessionActive)
         socket.on('CreatePeer', MakePeer)
 }
 
