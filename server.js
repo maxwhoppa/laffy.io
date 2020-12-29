@@ -22,18 +22,23 @@ room = 0
 
 io.on('connection', function(socket) {
   socket.on('NewClient', function() {
+    io.to(socket.id).emit('new_message', {sender:'server',message : 'Looking for an opponent...'})
     if (Object.keys(queue).length > 0){
       room = Object.keys(queue)[0]
       peerSocket = queue[room]
+      io.to(socket.id).emit('new_message', {sender:'server',message : 'Opponent Found!'})
+      io.to(peerSocket.id).emit('new_message', {sender:'server',message : 'Opponent Found!'})
       io.to(room).emit('CreatePeer')
       socket.join(room);
       io.to(room).emit('CreatePeer')
       peerSocket.join(room)
       delete queue[room]
+      
     }
     else {
       queue[socket.id+'chat'] = socket
       room++
+      
     }
       clients++;
     });
@@ -42,18 +47,50 @@ io.on('connection', function(socket) {
   socket.on('Answer', SendAnswer)
 
   socket.on('leave', function() {
+    console.log('leave')
+
     room = Object.keys(socket.rooms).filter(item => item!=socket.id)
       console.log('leaving room: '+room)
+      socket.to(room).emit('leave',{initiator:false})
       socket.leave(room)
       if (queue.hasOwnProperty(room))
         delete queue[room]
+              
+  });
+
+  socket.on('loss', function() {
+    console.log('loss')
+
+    room = Object.keys(socket.rooms).filter(item => item!=socket.id)
+
+    io.in(room).clients((err , clients) => {
+      for (const client of clients){
+        if (client.id !== socket.id)
+          io.to(client).emit('win')
+        else 
+        io.to(client).emit('loss')
+      }
+    })
+
   });
   
   socket.on('disconnect', function() {
+    console.log('disconnect')
     if (clients > 0)
       clients--
     
     room = Object.keys(socket.rooms).filter(item => item!=socket.id)
+    socket.to(room).emit('leave', {initiator:false})
+
+    io.in(room).clients((err , clients) => {
+      for (const client of clients){
+        if (client.id !== socket.id)
+          io.to(client).emit('win')
+        else 
+          io.to(client).emit('loss')
+      }
+    })
+
     if (queue.hasOwnProperty(room))
       delete queue[room]
 
@@ -63,7 +100,8 @@ io.on('connection', function(socket) {
   socket.on('RandomLoss', RandomLoss)
 
   socket.on('new_message', (data) => {
-    socket.to(Object.keys(socket.rooms).filter(item => item!=socket.id)[0]).emit('new_message', {message : data.message})
+    room = Object.keys(socket.rooms).filter(item => item!=socket.id)
+    io.to(room).emit('new_message', {sender:socket.id ,message : data.message})
   })
 
   socket.on('typing', (data) => {

@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 // import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import {WebcamComponentMemo} from './WebcamComponent'
 import {VideoAnalyzerState} from './VideoAnalyzer'
-import {leaveRoom, socket, socketStuff} from '../api/sockets';
+import {connectionUnderThreeSeconds,leaveRoom, socket, socketStuff} from '../api/sockets';
 import { animateScroll } from "react-scroll";
 
 
@@ -35,8 +35,9 @@ export type HomePageState = {
     // number of people currently being analized by the model
     numFaces: number
 
-
     chatInput: string
+
+    winstreak: number
   }
 
 type HomePageProps = {}
@@ -58,7 +59,8 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             faceDetectionActive: false,
             userSmiled: false,
             numFaces: 0,
-            chatInput: ''
+            chatInput: '',
+            winstreak:0,
         }
 
         this.nextButtonClick = this.nextButtonClick.bind(this)
@@ -72,6 +74,19 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
 
     componentDidMount() {
         document.addEventListener("keydown", this.onKeyPress, false);
+        // window.addEventListener("beforeunload", ()=>{
+        //     if (this.state.gameState> 1)
+        //         leaveRoom({initiator:true});
+        // });
+
+        socket.on('win', () =>{
+            this.setState({gameState:2,winstreak:this.state.winstreak+1})
+        });
+
+        socket.on('loss', ()=> {
+            this.setState({gameState:2, winstreak:0});
+        });
+
     }
 
     componentDidUpdate(prevState: HomePageState) {
@@ -79,6 +94,10 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
 
     componentWillUnmount() {
         document.removeEventListener("keydown", this.onKeyPress, false);
+        // window.removeEventListener("beforeunload", ()=>{
+        //     if (this.state.gameState> 1)
+        //         leaveRoom({initiator:true});
+        // });
     }
 
     nextButtonClick(){
@@ -90,11 +109,16 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             this.setState({gameState:1.5})
         }
         else if (this.state.gameState === 1.5){
-            leaveRoom()
-            this.setState({gameState:0})
+            var winstreak = this.state.winstreak
+            if (!connectionUnderThreeSeconds()){
+                winstreak = 0;
+            }
+            leaveRoom({initiator:true})
+            this.setState({gameState:0, winstreak: winstreak})
         }
         else if (this.state.gameState === 2){
-            //go to state 0
+            leaveRoom({initiator:true})
+            this.setState({gameState:0})
         }
     }
 
@@ -109,7 +133,8 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
                 gameState = -1
             }
             else if (gameState === 1 || gameState === 1.5){
-
+                if (VideoAnalyzerState.userSmiled)
+                    socket.emit('loss')
             }
             else if (gameState === 2){
 
@@ -161,6 +186,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
                 <div className="mb-2 h-100">
                     <h1 className="Display text-center">Players Detected</h1>
                     <h3 className="Display text-center">{this.state.numFaces}</h3>
+                    <h1 className="Display text-center">Winstreak: {this.state.winstreak}</h1>
                     <Chat gameState={this.state.gameState}/>
                 </div>
               </div>
@@ -208,11 +234,17 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
                 <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
             )
         }
+        else if (this.state.gameState === 2){
+            phrase = "end"
+            return (
+                <button type="button" className="btn btn-danger w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+            )
+        }
     }
 
 
     Chatbox(){
-        if (this.state.gameState === 1 || this.state.gameState === 1.5){
+        if (this.state.gameState >= 1 ){
             return(
                 <input type="text" id='textEntry' onKeyDown={this.onKeyPress} className="form-control" placeholder="Press Enter To Send Message" aria-label="Username" aria-describedby="basic-addon1"/>
             )
@@ -271,16 +303,19 @@ export class Chat extends Component<ChatProps,ChatState> {
             this.setState({typing:false})
         })
         socket.on('new_message', (data: any) => {
-            var log = this.state.log.concat('Opponent: '+ data.message);
+            if (data.sender === 'server')
+                var log = this.state.log.concat('SERVER: '+ data.message);
+            else if (data.sender === socket.id)
+                var log = this.state.log.concat('YOU: '+ data.message);
+            else 
+                var log = this.state.log.concat('OPPONENT: '+ data.message);
+
             this.setState({log:log});
         })
         this.scrollToBottom();
     }
 
     sendMessage(message: string){
-        message = 'You: ' + message
-        var log = this.state.log.concat(message)
-        this.setState({log: log})
         socket.emit('new_message', {message: message});
     }
 
@@ -306,7 +341,10 @@ export class Chat extends Component<ChatProps,ChatState> {
             <div className="input-group mb-3 fixed-bottom" style={{position : "absolute", bottom: 0}}>
                 <div style={{marginBottom:"10px",backgroundColor:"whitesmoke", height:"40vh"}} className="overflow-auto border w-100">
                 <ul id='chatlog' className="list-group">
-                    {this.state.log.map((message,i) => <li className="list-group-item" key={i} style={{textAlign:'left', border:'none', backgroundColor:"whitesmoke"}}>{message}</li>)}
+                    {this.state.log.map((message,i) => <li className="list-group-item" key={i} style={{textAlign:'left', border:'none', backgroundColor:"whitesmoke"}}>
+                        {this.NameTag(message)}
+                        {message.split(':').pop()}
+                        </li>)}
                 </ul>
                 </div>
                 {chatbox}
@@ -314,6 +352,15 @@ export class Chat extends Component<ChatProps,ChatState> {
         )
     }
 
+    NameTag(message:string){
+        if (message.split(':')[0] === "SERVER")
+            var tag = <p style={{color:"grey"}}>SERVER:</p>
+        else if (message.split(':')[0] === "YOU")
+            var tag = <p style={{color:"blue"}}>YOU:</p>
+        else
+            var tag = <p style={{color:"red"}}>OPPONENT:</p>
 
+        return tag
+    }
 
 }
