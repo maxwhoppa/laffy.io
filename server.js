@@ -53,8 +53,8 @@ io.on('connection', function(socket) {
       console.log('leaving room: '+room)
       socket.to(room).emit('leave',{initiator:false})
       socket.leave(room)
-      if (queue.hasOwnProperty(room))
-        delete queue[room]
+      if (queue.hasOwnProperty(socket.id+'chat'))
+        delete queue[socket.id+'chat']
               
   });
 
@@ -65,10 +65,14 @@ io.on('connection', function(socket) {
 
     io.in(room).clients((err , clients) => {
       for (const client of clients){
-        if (client.id !== socket.id)
+        if (client.id !== socket.id){
           io.to(client).emit('win')
-        else 
-        io.to(client).emit('loss')
+          io.to(client).emit('new_message',{sender:'server',message : 'You Win! Your Opponent Smiled First!'})
+        }
+        else {
+          io.to(client).emit('loss')
+          io.to(client).emit('new_message',{sender:'server',message : 'You Lose! You Smiled First!'})
+        }
       }
     })
 
@@ -84,15 +88,19 @@ io.on('connection', function(socket) {
 
     io.in(room).clients((err , clients) => {
       for (const client of clients){
-        if (client.id !== socket.id)
+        if (client.id !== socket.id){
           io.to(client).emit('win')
-        else 
+          io.to(client).emit('new_message',{sender:'server',message : 'You Win! Your Opponent Smiled First!'})
+        }
+        else {
           io.to(client).emit('loss')
+          io.to(client).emit('new_message',{sender:'server',message : 'You Lose! You Smiled First!'})
+        }
       }
     })
 
-    if (queue.hasOwnProperty(room))
-      delete queue[room]
+    if (queue.hasOwnProperty(socket.id+'chat'))
+      delete queue[socket.id+'chat']
 
   });
 

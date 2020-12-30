@@ -115,6 +115,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             }
             leaveRoom({initiator:true})
             this.setState({gameState:0, winstreak: winstreak})
+            
         }
         else if (this.state.gameState === 2){
             leaveRoom({initiator:true})
@@ -219,25 +220,25 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
         else if (this.state.gameState === 0 ){
             phrase = "Start (esc)"
             return (
-                <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+                <button type="button" className="btn btn-success w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
             )
         } 
         else if (this.state.gameState === 1){
             phrase = "Next (esc)"
             return (
-                <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+                <button type="button" className="btn btn-danger w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
             )
         }
         else if (this.state.gameState === 1.5){
             phrase = "Are You Sure? (esc)"
             return (
-                <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+                <button type="button" className="btn btn-danger w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
             )
         }
         else if (this.state.gameState === 2){
-            phrase = "end"
+            phrase = "Next"
             return (
-                <button type="button" className="btn btn-danger w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+                <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
             )
         }
     }
@@ -313,6 +314,11 @@ export class Chat extends Component<ChatProps,ChatState> {
             this.setState({log:log});
         })
         this.scrollToBottom();
+    }
+
+    componentDidUpdate(prevProps: ChatProps){
+        if (prevProps.gameState !== 0 && this.props.gameState === 0 )
+            this.setState({log:[]})
     }
 
     sendMessage(message: string){
