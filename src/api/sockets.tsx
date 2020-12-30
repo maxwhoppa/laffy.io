@@ -1,5 +1,5 @@
 import socketIOClient from "socket.io-client";
-export const socket = socketIOClient('https://laffy.io')
+export const socket = socketIOClient()
 
 
 

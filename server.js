@@ -5,15 +5,13 @@ const path = require('path');
 const app = express();
 const http = require('http')
 const https = require('https')
-
+const io = require('socket.io')(https)
 
 var privateKey  = fs.readFileSync('/etc/letsencrypt/live/laffy.io/privkey.pem', 'utf8');
 var certificate = fs.readFileSync('/etc/letsencrypt/live/laffy.io/fullchain.pem', 'utf8');
 var credentials = {key: privateKey, cert: certificate};
 
-const io = require('socket.io')(https, credentials)
 
- 
 clients = 0
 
 app.use(express.static(path.join(__dirname, 'build')));
