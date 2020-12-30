@@ -134,5 +134,12 @@ function SendAnswer(answer) {
   this.to(room).emit("BackAnswer", answer)
 }
 
-port = process.env.PORT || 8080
-http.listen(port, () => console.log(`Active on port ${port}`))
+// port = process.env.PORT || 8080
+// http.listen(port, () => console.log(`Active on port ${port}`))
+
+hostname = 'laffy.io'
+// const httpsServer = https.createServer(credentials,app);
+// httpsServer.listen(443, hostname)
+
+// const httpServer =  http.createServer(app);
+http.listen(80)

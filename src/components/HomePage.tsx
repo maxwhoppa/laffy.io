@@ -10,8 +10,9 @@ import { animateScroll } from "react-scroll";
 export type HomePageState = {
     // Gamestate:
     // -1 no camera, invalid position
-    // 0 camera on, no connection
-    // 1 camera on, connected with facial recognition -- game in session with another client
+    // 0 camera on, no connection, facial recognition active
+    // 0.5 looking for opponent
+    // 1 -- game in session with another client
     // 1.5 Are you sure -- next button hit once 
     // 2 camera on, connected with other client, no game in session
     gameState: number
