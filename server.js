@@ -5,7 +5,14 @@ const path = require('path');
 const app = express();
 const http = require('http')
 const https = require('https')
-const io = require('socket.io')(http)
+
+
+var privateKey  = fs.readFileSync('/etc/letsencrypt/live/laffy.io/privkey.pem', 'utf8');
+var certificate = fs.readFileSync('/etc/letsencrypt/live/laffy.io/fullchain.pem', 'utf8');
+var credentials = {key: privateKey, cert: certificate};
+
+const io = require('socket.io')(https, credentials)
+
  
 clients = 0
 
@@ -19,9 +26,6 @@ app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
-var privateKey  = fs.readFileSync('/etc/letsencrypt/live/laffy.io/privkey.pem', 'utf8');
-var certificate = fs.readFileSync('/etc/letsencrypt/live/laffy.io/fullchain.pem', 'utf8');
-var credentials = {key: privateKey, cert: certificate};
 app.use (function (req, res, next) {
         if (req.secure) {
                 // request was via https, so do no special handling
