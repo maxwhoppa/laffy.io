@@ -1,17 +1,28 @@
 const express = require('express');
-const fs = require('fs');
 const bodyParser = require('body-parser')
 const path = require('path');
 const app = express();
-const http = require('http')
+const fs = require('fs');
 const https = require('https')
-const io = require('socket.io')(https)
 
-var privateKey  = fs.readFileSync('/etc/letsencrypt/live/laffy.io/privkey.pem', 'utf8');
-var certificate = fs.readFileSync('/etc/letsencrypt/live/laffy.io/fullchain.pem', 'utf8');
-var credentials = {key: privateKey, cert: certificate};
+const PROD = false
+if (PROD){
+  var privateKey  = fs.readFileSync('/etc/letsencrypt/live/laffy.io/privkey.pem', 'utf8');
+  var certificate = fs.readFileSync('/etc/letsencrypt/live/laffy.io/fullchain.pem', 'utf8');
+  var credentials = {key: privateKey, cert: certificate};
+}
+else{
+  var privateKey  = fs.readFileSync('./file.pem', 'utf8');
+  var certificate = fs.readFileSync('./file.crt', 'utf8');
+  var credentials = {key: privateKey, cert: certificate};
+}
+
+const httpsServer = https.createServer(credentials,app);
+const io = require('socket.io')(httpsServer)
 
 
+// const https = require('https').Server(app)
+ 
 clients = 0
 
 app.use(express.static(path.join(__dirname, 'build')));
@@ -22,16 +33,6 @@ app.get('/ping', function (req, res) {
 
 app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
-
-app.use (function (req, res, next) {
-        if (req.secure) {
-                // request was via https, so do no special handling
-                next();
-        } else {
-                // request was via http, so redirect to https
-                res.redirect('https://' + req.headers.host + req.url);
-        }
 });
 
 queue = {}
@@ -151,17 +152,7 @@ function SendAnswer(answer) {
   this.to(room).emit("BackAnswer", answer)
 }
 
+httpsServer.listen(8080)
+
 // port = process.env.PORT || 8080
-// http.listen(port, () => console.log(`Active on port ${port}`))
-
-hostname = 'laffy.io'
-// const httpsServer = https.createServer(credentials,app);
-// httpsServer.listen(443, hostname)
-
-// const httpServer =  http.createServer(app);
-
-var httpServer = http.createServer(app);
-var httpsServer = https.createServer(credentials, app);
-
-httpServer.listen(80);
-httpsServer.listen(443);
+// https.listen(port, () => console.log(`Active on port ${port}`))
