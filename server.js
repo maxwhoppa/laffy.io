@@ -27,16 +27,6 @@ clients = 0
 
 app.use(express.static(path.join(__dirname, 'build')));
 
-app.use (function (req, res, next) {
-  if (req.secure) {
-          // request was via https, so do no special handling
-          next();
-  } else {
-          // request was via http, so redirect to https
-          res.redirect('https://' + req.headers.host + req.url);
-  }
-});
-
 app.get('/ping', function (req, res) {
  return res.send('pong');
 });
@@ -163,6 +153,12 @@ function SendAnswer(answer) {
 }
 
 httpsServer.listen(8080)
+
+var http = require('http');
+http.createServer(function (req, res) {
+    res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+    res.end();
+}).listen(80);
 
 // port = process.env.PORT || 8080
 // https.listen(port, () => console.log(`Active on port ${port}`))
