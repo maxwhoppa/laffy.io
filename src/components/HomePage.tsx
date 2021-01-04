@@ -40,6 +40,9 @@ export type HomePageState = {
     chatInput: string
 
     winstreak: number
+
+    countdown: number
+
   }
 
 type HomePageProps = {}
@@ -63,6 +66,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             numFaces: 0,
             chatInput: '',
             winstreak:0,
+            countdown:3,
         }
 
         this.nextButtonClick = this.nextButtonClick.bind(this)
@@ -76,10 +80,6 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
 
     componentDidMount() {
         document.addEventListener("keydown", this.onKeyPress, false);
-        // window.addEventListener("beforeunload", ()=>{
-        //     if (this.state.gameState> 1)
-        //         leaveRoom({initiator:true});
-        // });
 
         socket.on('win', () =>{
             this.setState({gameState:2,winstreak:this.state.winstreak+1})
@@ -89,6 +89,24 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             this.setState({gameState:2, winstreak:0});
         });
 
+        socket.on('countdown', ()=> {
+            var intervalID = setInterval(() => {
+                var countdown = this.state.countdown;
+                var gameState = this.state.gameState;
+                countdown -= 1;
+
+                if (countdown < 0){
+                    countdown = 4
+                    gameState = 1
+                    window.clearInterval(intervalID);
+                }
+                    
+                this.setState({countdown:countdown, gameState: gameState});
+
+            }, 1000);
+            
+        });
+    
     }
 
     componentDidUpdate(prevState: HomePageState) {
@@ -105,10 +123,11 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
     nextButtonClick(){
         if (this.state.gameState === 0 && this.state.faceDetectionActive){
             socketStuff(this.video?.srcObject, this.peerVideo)
-            this.setState({gameState:1})
+            this.setState({gameState:.1})
         }
-        else if (this.state.gameState === .5){
-
+        else if (this.state.gameState === .1 || this.state.gameState === .5){
+            leaveRoom({initiator:true})
+            this.setState({gameState:0})
         }
         else if (this.state.gameState === 1){
             this.setState({gameState:1.5})
@@ -189,16 +208,17 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
               </div>
               <div className="col-6 h-100">
                 <div className="mb-2 h-100">
-                    <h1 className="Display text-center">Players Detected</h1>
+                    {/* <h1 className="Display text-center">Players Detected</h1>
                     <h3 className="Display text-center">{this.state.numFaces}</h3>
-                    <h1 className="Display text-center">Winstreak: {this.state.winstreak}</h1>
-                    <Chat gameState={this.state.gameState}/>
+                    <h1 className="Display text-center">Winstreak: {this.state.winstreak}</h1> */}
+                    <Chat gameState={this.state.gameState} countdown={this.state.countdown}/>
                 </div>
               </div>
               <div className="col" >
                 <div className="mb-2 h-100" >
                   <img className="rounded mx-auto d-block" src="LAFFY_APP_MODEL.png" alt='laffy logo' style={{width: "100%",position:"absolute", top:0, paddingRight: "20px"}}/>
-                    <div className="input-group mb-3" style={{position:"absolute", bottom:0, paddingRight: "20px"}}>
+                    <div className="input-group mb-3" style={{position:"absolute", bottom:0, paddingRight: "20px", lineHeight: 'normal'}}>
+                        <p className="w-100">Players Detected: {this.state.numFaces}</p>
                         {this.Button()} 
                     </div>
                 </div>
@@ -210,6 +230,8 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
 
     Button(){
         var phrase = "";
+        var overhead = "Number of Players: " + this.state.numFaces;
+        var button;
         if (this.state.gameState === -1){
             if (this.state.faceDetectionActive === false){
                 phrase = "Loading..."
@@ -217,34 +239,40 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             else if (this.state.numFaces === 0){
                 phrase = "No Faces Detected"
             }
-            return (
-            <button type="button" className="btn btn-secondary w-100 " disabled onClick={() => this.nextButtonClick()}>{phrase}</button>
-            )
+            button = <button type="button" className="btn btn-secondary w-100 " disabled onClick={() => this.nextButtonClick()}>{phrase}</button>
+            
         }
         else if (this.state.gameState === 0 ){
             phrase = "Start (esc)"
-            return (
-                <button type="button" className="btn btn-success w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
-            )
+            
+            button = <button type="button" className="btn btn-success w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+            
         } 
+        else if (this.state.gameState > 0 && this.state.gameState < 1){
+            phrase = "Skip"
+            
+            button = <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+            
+        }
         else if (this.state.gameState === 1){
             phrase = "Next (esc)"
-            return (
-                <button type="button" className="btn btn-danger w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
-            )
+            
+            button =   <button type="button" className="btn btn-danger w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+            
         }
         else if (this.state.gameState === 1.5){
             phrase = "Are You Sure? (esc)"
-            return (
-                <button type="button" className="btn btn-danger w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
-            )
+            button =     <button type="button" className="btn btn-danger w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+            
         }
         else if (this.state.gameState === 2){
             phrase = "Next"
-            return (
-                <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
-            )
+            button =     <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
         }
+
+        return(
+            button
+        )
     }
 
 
@@ -263,7 +291,8 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
 }
 
 type ChatProps = {
-    gameState: number
+    gameState: number,
+    countdown: number
 }
 type ChatState = {
     log: Array<string>,
@@ -317,12 +346,23 @@ export class Chat extends Component<ChatProps,ChatState> {
 
             this.setState({log:log});
         })
+
         this.scrollToBottom();
     }
 
     componentDidUpdate(prevProps: ChatProps){
         if (prevProps.gameState !== 0 && this.props.gameState === 0 )
             this.setState({log:[]})
+
+        if (this.props.gameState === .5){
+            var log = this.state.log
+            if (this.props.countdown === 0)
+                log[log.length] += 'GO!'
+            else if (this.props.countdown < 4)
+                log[log.length] += this.props.countdown
+
+            this.setState({log:log});
+        }
     }
 
     sendMessage(message: string){

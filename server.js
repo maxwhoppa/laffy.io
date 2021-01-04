@@ -52,6 +52,7 @@ io.on('connection', function(socket) {
       peerSocket.join(room)
       delete queue[room]
       
+      io.to(room).emit('countdown')
     }
     else {
       queue[socket.id+'chat'] = socket      

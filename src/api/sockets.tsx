@@ -52,7 +52,7 @@ function InitPeer(type: any ){
     let peer = new Peer({initiator:(type === 'init')? true: false, stream: stream, trickle: false})
     peer.on('stream', function (stream : any){
       peerVideo.srcObject = stream
-      connectionTime = Date.now()
+    //   connectionTime = Date.now()
     })
     peer.on('close', function(){
         // document.getElementById('peerVideo').remove();
