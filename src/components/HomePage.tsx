@@ -11,7 +11,8 @@ export type HomePageState = {
     // Gamestate:
     // -1 no camera, invalid position
     // 0 camera on, no connection, facial recognition active
-    // 0.5 looking for opponent
+    // 0.1 looking for opponent 
+    // 0.5 3 second countdown
     // 1 -- game in session with another client
     // 1.5 Are you sure -- next button hit once 
     // 2 camera on, connected with other client, no game in session
@@ -106,14 +107,14 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             socketStuff(this.video?.srcObject, this.peerVideo)
             this.setState({gameState:1})
         }
+        else if (this.state.gameState === .5){
+
+        }
         else if (this.state.gameState === 1){
             this.setState({gameState:1.5})
         }
         else if (this.state.gameState === 1.5){
-            var winstreak = this.state.winstreak
-            if (!connectionUnderThreeSeconds()){
-                winstreak = 0;
-            }
+            var winstreak = 0;
             leaveRoom({initiator:true})
             this.setState({gameState:0, winstreak: winstreak})
             
@@ -135,8 +136,10 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
                 gameState = -1
             }
             else if (gameState === 1 || gameState === 1.5){
-                if (VideoAnalyzerState.userSmiled)
+                if (VideoAnalyzerState.userSmiled){
                     socket.emit('loss')
+                    console.log('user smiled, emitting loss')
+                }
             }
             else if (gameState === 2){
 
@@ -341,7 +344,7 @@ export class Chat extends Component<ChatProps,ChatState> {
     render(){
         var chatbox =  <input type="text" id='textEntry' value={this.state.inputValue} onChange={this.handleChange} onKeyDown={this.onKeyPress} className="form-control" disabled placeholder="Press Enter To Send Message" aria-label="Username" aria-describedby="basic-addon1"/>
         
-        if (this.props.gameState === 1 || this.props.gameState === 1.5 )
+        if (this.props.gameState > 1)
             chatbox =  <input type="text" id='textEntry' value={this.state.inputValue} onChange={this.handleChange} onKeyDown={this.onKeyPress} className="form-control" placeholder="Press Enter To Send Message" aria-label="Username" aria-describedby="basic-addon1"/>
 
         return(

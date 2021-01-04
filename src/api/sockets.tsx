@@ -18,8 +18,10 @@ let client = {
 
 // caller loses the game
 export function leaveRoom(data: any){
-    if (data.initiator)
+    if (data.initiator){
         socket.emit('leave')
+        socket.emit('loss')
+    }
 
     console.log('leaving')
     client.peer.destroy()

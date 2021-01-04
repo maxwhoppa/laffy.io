@@ -37,7 +37,6 @@ app.get('/', function (req, res) {
 });
 
 queue = {}
-room = 0
 
 io.on('connection', function(socket) {
   socket.on('NewClient', function() {
@@ -55,9 +54,7 @@ io.on('connection', function(socket) {
       
     }
     else {
-      queue[socket.id+'chat'] = socket
-      room++
-      
+      queue[socket.id+'chat'] = socket      
     }
       clients++;
     });
@@ -84,7 +81,7 @@ io.on('connection', function(socket) {
 
     io.in(room).clients((err , clients) => {
       for (const client of clients){
-        if (client.id !== socket.id){
+        if (client !== socket.id){
           io.to(client).emit('win')
           io.to(client).emit('new_message',{sender:'server',message : 'You Win! Your Opponent Smiled First!'})
         }
@@ -97,7 +94,7 @@ io.on('connection', function(socket) {
 
   });
   
-  socket.on('disconnect', function() {
+  socket.on('disconnecting', function() {
     console.log('disconnect')
     if (clients > 0)
       clients--
@@ -109,11 +106,14 @@ io.on('connection', function(socket) {
       for (const client of clients){
         if (client.id !== socket.id){
           io.to(client).emit('win')
-          io.to(client).emit('new_message',{sender:'server',message : 'You Win! Your Opponent Smiled First!'})
+          io.to(client).emit('new_message',{sender:'server',message : 'You Win! Your Opponent Left'})
+          socket.winstreak = socket.winstreak + 1
+          socket.wins = socket.wins + 1
         }
         else {
           io.to(client).emit('loss')
-          io.to(client).emit('new_message',{sender:'server',message : 'You Lose! You Smiled First!'})
+          io.to(client).emit('new_message',{sender:'server',message : 'You Lose! You Disconnected!'})
+          socket.winstreak = 0
         }
       }
     })
