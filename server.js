@@ -4,8 +4,8 @@ const path = require('path');
 const app = express();
 const fs = require('fs');
 const https = require('https')
+const PROD = process.env.PROD || false
 
-const PROD = false
 if (PROD){
   var privateKey  = fs.readFileSync('/etc/letsencrypt/live/laffy.io/privkey.pem', 'utf8');
   var certificate = fs.readFileSync('/etc/letsencrypt/live/laffy.io/fullchain.pem', 'utf8');
@@ -152,13 +152,14 @@ function SendAnswer(answer) {
   this.to(room).emit("BackAnswer", answer)
 }
 
-httpsServer.listen(8080)
+httpsPort = process.env.HTTPS_PORT || 8080
+httpsServer.listen(httpsPort)
 
+httpPort = process.env.HTTP_PORT || 8081
 var http = require('http');
 http.createServer(function (req, res) {
     res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
     res.end();
-}).listen(80);
+}).listen(httpPort);
 
-// port = process.env.PORT || 8080
-// https.listen(port, () => console.log(`Active on port ${port}`))
+console.log('httpPort: '+ httpPort + ' httpsPort: '+ httpsPort)

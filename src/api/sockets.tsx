@@ -1,8 +1,10 @@
 import socketIOClient from "socket.io-client";
 
-    // export const socket = socketIOClient('https://laffy.io', {secure: true})
+const url = process.env.URL || 'https://localhost:8080/'
 
-export const socket = socketIOClient('https://localhost:8080/')
+// export const socket = socketIOClient('https://laffy.io', {secure: true})
+
+export const socket = socketIOClient(url, {secure:true})
 
 
 let Peer = require('simple-peer')
