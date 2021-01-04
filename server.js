@@ -6,6 +6,7 @@ const fs = require('fs');
 const https = require('https')
 const PROD = process.env.PROD || false
 
+console.log('PROD:' +PROD)
 if (PROD){
   var privateKey  = fs.readFileSync('/etc/letsencrypt/live/laffy.io/privkey.pem', 'utf8');
   var certificate = fs.readFileSync('/etc/letsencrypt/live/laffy.io/fullchain.pem', 'utf8');
