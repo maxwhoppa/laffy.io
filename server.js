@@ -46,6 +46,8 @@ io.on('connection', function(socket) {
       peerSocket = queue[room]
       io.to(socket.id).emit('new_message', {sender:'server',message : 'Opponent Found!'})
       io.to(peerSocket.id).emit('new_message', {sender:'server',message : 'Opponent Found!'})
+      io.to(socket.id).emit('new_message', {sender:'server',message : 'Starting in... ' })
+      io.to(peerSocket.id).emit('new_message', {sender:'server',message : 'Starting in... ' })
       io.to(room).emit('CreatePeer')
       socket.join(room);
       io.to(room).emit('CreatePeer')
@@ -68,8 +70,20 @@ io.on('connection', function(socket) {
 
     room = Object.keys(socket.rooms).filter(item => item!=socket.id)
       console.log('leaving room: '+room)
-      socket.to(room).emit('leave',{initiator:false})
+      io.to(room).emit('leave',{initiator:false})
       socket.leave(room)
+      socket.to(socket.id).emit('loss')
+      socket.winstreak = 0
+
+      io.in(room).clients((err , clients) => {
+        for (const client of clients){
+          if (client !== socket.id){
+            io.to(client).emit('win') // change to abandoned, not win
+            io.to(client).emit('new_message',{sender:'server',message : 'You Win! Your Opponent Left!'})
+          }
+        }
+      })
+        
       if (queue.hasOwnProperty(socket.id+'chat'))
         delete queue[socket.id+'chat']
               

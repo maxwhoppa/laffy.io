@@ -66,7 +66,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             numFaces: 0,
             chatInput: '',
             winstreak:0,
-            countdown:3,
+            countdown:4,
         }
 
         this.nextButtonClick = this.nextButtonClick.bind(this)
@@ -90,12 +90,14 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
         });
 
         socket.on('countdown', ()=> {
+            this.setState({gameState: .5});
+
             var intervalID = setInterval(() => {
                 var countdown = this.state.countdown;
                 var gameState = this.state.gameState;
                 countdown -= 1;
 
-                if (countdown < 0){
+                if (countdown === 0){
                     countdown = 4
                     gameState = 1
                     window.clearInterval(intervalID);
@@ -354,15 +356,19 @@ export class Chat extends Component<ChatProps,ChatState> {
         if (prevProps.gameState !== 0 && this.props.gameState === 0 )
             this.setState({log:[]})
 
-        if (this.props.gameState === .5){
+        if (this.props.gameState === .5 && this.props.countdown !== prevProps.countdown){
             var log = this.state.log
-            if (this.props.countdown === 0)
-                log[log.length] += 'GO!'
-            else if (this.props.countdown < 4)
-                log[log.length] += this.props.countdown
+            log[log.length-1] = log[log.length-1] +  this.props.countdown + "... "
 
             this.setState({log:log});
         }
+        if (this.props.gameState === 1 && this.props.countdown !== prevProps.countdown){
+            var log = this.state.log
+            log[log.length-1] = log[log.length-1] + "Go!"
+            this.setState({log:log});
+
+        }
+
     }
 
     sendMessage(message: string){
@@ -384,7 +390,7 @@ export class Chat extends Component<ChatProps,ChatState> {
     render(){
         var chatbox =  <input type="text" id='textEntry' value={this.state.inputValue} onChange={this.handleChange} onKeyDown={this.onKeyPress} className="form-control" disabled placeholder="Press Enter To Send Message" aria-label="Username" aria-describedby="basic-addon1"/>
         
-        if (this.props.gameState > 1)
+        if (this.props.gameState >= 1)
             chatbox =  <input type="text" id='textEntry' value={this.state.inputValue} onChange={this.handleChange} onKeyDown={this.onKeyPress} className="form-control" placeholder="Press Enter To Send Message" aria-label="Username" aria-describedby="basic-addon1"/>
 
         return(
