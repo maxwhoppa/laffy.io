@@ -1,6 +1,6 @@
 import socketIOClient from "socket.io-client";
 
-const url = process.env.URL || 'https://localhost:8080/'
+const url = process.env.REACT_APP_URL || 'https://localhost:8080/'
 
 // export const socket = socketIOClient('https://laffy.io', {secure: true})
 

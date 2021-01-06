@@ -8,6 +8,7 @@ const PROD = process.env.PROD || false
 
 console.log('PROD:' +PROD)
 if (PROD){
+  console.log('it worked')
   var privateKey  = fs.readFileSync('/etc/letsencrypt/live/laffy.io/privkey.pem', 'utf8');
   var certificate = fs.readFileSync('/etc/letsencrypt/live/laffy.io/fullchain.pem', 'utf8');
   var credentials = {key: privateKey, cert: certificate};
