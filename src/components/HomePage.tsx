@@ -79,7 +79,16 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
     }
 
     componentDidMount() {
+        var intervalID : any;
         document.addEventListener("keydown", this.onKeyPress, false);
+
+        socket.on('leave', () =>{
+            leaveRoom({initiator:false})
+            this.setState({gameState:0, countdown:4})
+            if (intervalID){
+                window.clearInterval(intervalID);
+            }
+        });
 
         socket.on('win', () =>{
             this.setState({gameState:2,winstreak:this.state.winstreak+1})
@@ -92,7 +101,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
         socket.on('countdown', ()=> {
             this.setState({gameState: .5});
 
-            var intervalID = setInterval(() => {
+            intervalID = setInterval(() => {
                 var countdown = this.state.countdown;
                 var gameState = this.state.gameState;
                 countdown -= 1;
@@ -101,6 +110,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
                     countdown = 4
                     gameState = 1
                     window.clearInterval(intervalID);
+                    intervalID = null
                 }
                     
                 this.setState({countdown:countdown, gameState: gameState});
@@ -245,7 +255,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             
         }
         else if (this.state.gameState === 0 ){
-            phrase = "Start (esc)"
+            phrase = "Start"
             
             button = <button type="button" className="btn btn-success w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
             
@@ -257,13 +267,13 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             
         }
         else if (this.state.gameState === 1){
-            phrase = "Next (esc)"
+            phrase = "Stop"
             
             button =   <button type="button" className="btn btn-danger w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
             
         }
         else if (this.state.gameState === 1.5){
-            phrase = "Are You Sure? (esc)"
+            phrase = "Are You Sure?"
             button =     <button type="button" className="btn btn-danger w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
             
         }
@@ -367,6 +377,7 @@ export class Chat extends Component<ChatProps,ChatState> {
             log[log.length-1] = log[log.length-1] + "Go!"
             this.setState({log:log});
 
+            socket.emit('started')
         }
 
     }
@@ -410,11 +421,11 @@ export class Chat extends Component<ChatProps,ChatState> {
 
     NameTag(message:string){
         if (message.split(':')[0] === "SERVER")
-            var tag = <p style={{color:"grey"}}>SERVER:</p>
+            var tag = <b style={{color:"grey"}}>SERVER:</b>
         else if (message.split(':')[0] === "YOU")
-            var tag = <p style={{color:"blue"}}>YOU:</p>
+            var tag = <b style={{color:"blue"}}>YOU:</b>
         else
-            var tag = <p style={{color:"red"}}>OPPONENT:</p>
+            var tag = <b style={{color:"red"}}>OPPONENT:</b>
 
         return tag
     }

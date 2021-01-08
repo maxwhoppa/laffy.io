@@ -16,6 +16,9 @@ let client = {
   gotAnswer:false,
 }
 
+window.onbeforeunload = function () {
+    client.peer.destroy()
+}
 // caller loses the game
 export function leaveRoom(data: any){
     if (data.initiator){
@@ -57,8 +60,11 @@ function InitPeer(type: any ){
         // document.getElementById('peerVideo').remove();
         peer.destroy() 
         connectionTime = null;
-
     })
+    peer.on("error", (e:any) => {
+        console.log("Error sending connection to peer %s:",e);
+      });
+
     return peer
 }
 
@@ -96,7 +102,6 @@ function SignalAnswer(answer : any){
 socket.on('BackOffer', FrontAnswer)
 socket.on('BackAnswer', SignalAnswer)
 socket.on('CreatePeer', MakePeer)
-socket.on('leave', leaveRoom)
 
 export function RandomChatLoss(){
     socket.emit('RandomLoss')

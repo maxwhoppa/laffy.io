@@ -54,10 +54,12 @@ io.on('connection', function(socket) {
       io.to(room).emit('CreatePeer')
       peerSocket.join(room)
       delete queue[room]
-      
+      console.log('joining room; ' +room )
+
       io.to(room).emit('countdown')
     }
     else {
+      console.log('queuing room; ' +socket.id+'chat' )
       queue[socket.id+'chat'] = socket      
     }
       clients++;
@@ -71,20 +73,43 @@ io.on('connection', function(socket) {
 
     room = Object.keys(socket.rooms).filter(item => item!=socket.id)
       console.log('leaving room: '+room)
-      io.to(room).emit('leave',{initiator:false})
-      socket.leave(room)
-      socket.to(socket.id).emit('loss')
-      socket.winstreak = 0
 
       io.in(room).clients((err , clients) => {
         for (const client of clients){
           if (client !== socket.id){
-            io.to(client).emit('win') // change to abandoned, not win
-            io.to(client).emit('new_message',{sender:'server',message : 'You Win! Your Opponent Left!'})
+            if (io.sockets.connected[client].started){
+              io.sockets.connected[client].wins += 1
+              io.sockets.connected[client].winstreak += 1
+              io.to(client).emit('new_message',{sender:'server',message : 'You Win! Your Opponent Left!'})
+            }
+            else{
+              io.to(client).emit('new_message',{sender:'server',message : 'Your Opponent Left.'})
+            }
           }
+          else {
+            if (io.sockets.connected[client].started){
+              if (io.sockets.connected[client].started){
+                io.sockets.connected[client].winstreak = 0
+              }
+              io.to(client).emit('new_message',{sender:'server',message : 'You Lose! You Left During The Game!'})
+            }
+          }
+          // remember this is needed on replay
+          if (io.sockets.connected[client])
+            io.sockets.connected[client].started = false
         }
       })
         
+      if (room){
+        io.to(room).emit('leave',{initiator:false})
+        io.in(room).clients((err , clients) => {
+          for (const client of clients){
+            if (io.sockets.connected[client])
+              io.sockets.connected[client].leave(room)
+          }
+        });
+      }
+
       if (queue.hasOwnProperty(socket.id+'chat'))
         delete queue[socket.id+'chat']
               
@@ -98,13 +123,36 @@ io.on('connection', function(socket) {
     io.in(room).clients((err , clients) => {
       for (const client of clients){
         if (client !== socket.id){
+          if (io.sockets.connected[client].started){
+            io.sockets.connected[client].winstreak += 1
+            io.sockets.connected[client].win += 1
+          }
           io.to(client).emit('win')
           io.to(client).emit('new_message',{sender:'server',message : 'You Win! Your Opponent Smiled First!'})
         }
         else {
+          if (io.sockets.connected[client].started){
+            io.sockets.connected[client].winstreak = 0
+          }
           io.to(client).emit('loss')
           io.to(client).emit('new_message',{sender:'server',message : 'You Lose! You Smiled First!'})
         }
+        if (io.sockets.connected[client])
+          io.sockets.connected[client].started = false
+      }
+    })
+
+  });
+
+  socket.on('started', function() {
+    console.log('started')
+
+    room = Object.keys(socket.rooms).filter(item => item!=socket.id)
+
+    io.in(room).clients((err , clients) => {
+      for (const client of clients){
+        if (io.sockets.connected[client])
+          io.sockets.connected[client].started = true
       }
     })
 
@@ -116,23 +164,45 @@ io.on('connection', function(socket) {
       clients--
     
     room = Object.keys(socket.rooms).filter(item => item!=socket.id)
-    socket.to(room).emit('leave', {initiator:false})
+
 
     io.in(room).clients((err , clients) => {
       for (const client of clients){
         if (client.id !== socket.id){
-          io.to(client).emit('win')
-          io.to(client).emit('new_message',{sender:'server',message : 'You Win! Your Opponent Left'})
-          socket.winstreak = socket.winstreak + 1
-          socket.wins = socket.wins + 1
+          if (io.sockets.connected[client] && io.sockets.connected[client].started){
+            io.sockets.connected[client].winstreak += 1
+            io.sockets.connected[client].wins += 1
+            io.to(client).emit('win')
+            io.to(client).emit('new_message',{sender:'server',message : 'You Win! Your Opponent Left'})
+          }
+          else {
+            io.to(client).emit('new_message',{sender:'server',message : 'Your Opponent Left.'})
+          }
         }
         else {
-          io.to(client).emit('loss')
-          io.to(client).emit('new_message',{sender:'server',message : 'You Lose! You Disconnected!'})
-          socket.winstreak = 0
+          if (io.sockets.connected[client] && io.sockets.connected[client].started){
+            io.sockets.connected[client].winstreak = 0
+            io.to(client).emit('loss')
+            io.to(client).emit('new_message',{sender:'server',message : 'You Lose! You Disconnected!'})
+          }
+          else {
+            io.to(client).emit('new_message',{sender:'server',message : 'You Disconnected.'})
+          }
         }
+        if (io.sockets.connected[client])
+          io.sockets.connected[client].started = false
       }
     })
+
+    if (room){
+      io.to(room).emit('leave',{initiator:false})
+      io.in(room).clients((err , clients) => {
+        for (const client of clients){
+          if (io.sockets.connected[client])
+          io.sockets.connected[client].leave(room)
+        }
+      });
+    }
 
     if (queue.hasOwnProperty(socket.id+'chat'))
       delete queue[socket.id+'chat']
