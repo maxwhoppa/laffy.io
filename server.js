@@ -87,11 +87,13 @@ io.on('connection', function(socket) {
             }
           }
           else {
-            if (io.sockets.connected[client].started){
+            if (io.sockets.connected[client]){
               if (io.sockets.connected[client].started){
                 io.sockets.connected[client].winstreak = 0
+                io.to(client).emit('new_message',{sender:'server',message : 'You Lose! You Left During The Game!'})
               }
-              io.to(client).emit('new_message',{sender:'server',message : 'You Lose! You Left During The Game!'})
+              else
+                io.to(client).emit('new_message',{sender:'server',message : 'You Left.'})
             }
           }
           // remember this is needed on replay
@@ -115,7 +117,7 @@ io.on('connection', function(socket) {
               
   });
 
-  socket.on('loss', function() {
+  socket.on('loss', data => {
     console.log('loss')
 
     room = Object.keys(socket.rooms).filter(item => item!=socket.id)
@@ -128,14 +130,22 @@ io.on('connection', function(socket) {
             io.sockets.connected[client].win += 1
           }
           io.to(client).emit('win')
-          io.to(client).emit('new_message',{sender:'server',message : 'You Win! Your Opponent Smiled First!'})
+          if (data.type === 'smiled')
+            io.to(client).emit('new_message',{sender:'server',message : 'You Win! Your Opponent Smiled First!'})
+          else if (data.type ==='no_face')
+            io.to(client).emit('new_message',{sender:'server',message : 'You Win! Your Opponent Left The Screen!'})
+
         }
         else {
           if (io.sockets.connected[client].started){
             io.sockets.connected[client].winstreak = 0
           }
           io.to(client).emit('loss')
-          io.to(client).emit('new_message',{sender:'server',message : 'You Lose! You Smiled First!'})
+          if (data.type === 'smiled')
+            io.to(client).emit('new_message',{sender:'server',message : 'You Lose! You Smiled First!'})
+          else if (data.type ==='no_face')
+            io.to(client).emit('new_message',{sender:'server',message : 'You Lose! You Left The Screen!'})
+
         }
         if (io.sockets.connected[client])
           io.sockets.connected[client].started = false
@@ -144,22 +154,38 @@ io.on('connection', function(socket) {
 
   });
 
-  socket.on('started', function() {
+  socket.on('play_again', function() {
     console.log('started')
 
+    socket.again = true
+    socket.started = false
     room = Object.keys(socket.rooms).filter(item => item!=socket.id)
 
     io.in(room).clients((err , clients) => {
       for (const client of clients){
-        if (io.sockets.connected[client])
-          io.sockets.connected[client].started = true
+        console.log(client)
+        if (client !== socket.id){
+          if (io.sockets.connected[client].again){
+            socket.started = false
+            client.started = false
+            socket.again = false
+            client.again = false
+            io.to(room).emit('new_message', {sender:'server',message : 'Starting in... ' })
+            io.to(room).emit('countdown')
+          }
+        }
       }
     })
 
+
+  });
+
+  socket.on('started', function() {
+    socket.started = true
   });
   
   socket.on('disconnecting', function() {
-    console.log('disconnect')
+    console.log('disconnecting')
     if (clients > 0)
       clients--
     
@@ -168,7 +194,7 @@ io.on('connection', function(socket) {
 
     io.in(room).clients((err , clients) => {
       for (const client of clients){
-        if (client.id !== socket.id){
+        if (client !== socket.id){
           if (io.sockets.connected[client] && io.sockets.connected[client].started){
             io.sockets.connected[client].winstreak += 1
             io.sockets.connected[client].wins += 1

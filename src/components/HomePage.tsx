@@ -37,6 +37,8 @@ export type HomePageState = {
     // number of people currently being analized by the model
     numFaces: number
 
+    strikes: number
+
     chatInput: string
 
     winstreak: number
@@ -67,6 +69,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             chatInput: '',
             winstreak:0,
             countdown:4,
+            strikes: 5,
         }
 
         this.nextButtonClick = this.nextButtonClick.bind(this)
@@ -91,11 +94,17 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
         });
 
         socket.on('win', () =>{
-            this.setState({gameState:2,winstreak:this.state.winstreak+1})
+            this.setState({gameState:2,winstreak:this.state.winstreak+1,countdown:4})
+            if (intervalID){
+                window.clearInterval(intervalID);
+            }
         });
 
         socket.on('loss', ()=> {
-            this.setState({gameState:2, winstreak:0});
+            this.setState({gameState:2, winstreak:0,countdown:4});
+            if (intervalID){
+                window.clearInterval(intervalID);
+            }
         });
 
         socket.on('countdown', ()=> {
@@ -158,6 +167,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
 
     handleWebcamChange(VideoAnalyzerState: VideoAnalyzerState){
         var gameState = this.state.gameState;
+        var strikes = this.state.strikes;
         if (VideoAnalyzerState.faceDetectionActive){
 
             if (gameState === -1 && VideoAnalyzerState.numFaces !== 0){
@@ -168,8 +178,17 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             }
             else if (gameState === 1 || gameState === 1.5){
                 if (VideoAnalyzerState.userSmiled){
-                    socket.emit('loss')
+                    socket.emit('loss', {type: 'smiled'})
                     console.log('user smiled, emitting loss')
+                }
+                if (this.state.numFaces === 0){
+                    strikes -=  1;
+                    if (strikes === 0){
+                        socket.emit('loss', {type: 'no_face'})
+                        strikes = 5
+                    }
+                } else {
+                    strikes = 5
                 }
             }
             else if (gameState === 2){
@@ -190,7 +209,8 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
                 faceDetectionActive: VideoAnalyzerState.faceDetectionActive,
                 userSmiled: VideoAnalyzerState.userSmiled,
                 numFaces: VideoAnalyzerState.numFaces,
-                gameState: gameState
+                gameState: gameState,
+                strikes:strikes
             });
         }
     }
@@ -279,7 +299,12 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
         }
         else if (this.state.gameState === 2){
             phrase = "Next"
-            button =     <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+            button =     <div className="w-100">
+            <button type="button" className="btn btn-success w-100 " onClick={() => socket.emit('play_again')}>{'Rematch'}</button>
+
+            <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+
+            </div>
         }
 
         return(
