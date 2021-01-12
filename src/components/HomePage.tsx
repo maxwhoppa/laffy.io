@@ -73,6 +73,8 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
         }
 
         this.nextButtonClick = this.nextButtonClick.bind(this)
+        this.rematchButtonClick = this.rematchButtonClick.bind(this)
+
     }
 
     onKeyPress(event: any){
@@ -159,7 +161,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             this.setState({gameState:0, winstreak: winstreak})
             
         }
-        else if (this.state.gameState === 2){
+        else if (this.state.gameState === 2 || this.state.gameState === 2.5){
             leaveRoom({initiator:true})
             this.setState({gameState:0})
         }
@@ -251,6 +253,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
                   <img className="rounded mx-auto d-block" src="LAFFY_APP_MODEL.png" alt='laffy logo' style={{width: "100%",position:"absolute", top:0, paddingRight: "20px"}}/>
                     <div className="input-group mb-3" style={{position:"absolute", bottom:0, paddingRight: "20px", lineHeight: 'normal'}}>
                         <p className="w-100">Players Detected: {this.state.numFaces}</p>
+                        {this.Rematch()}
                         {this.Button()} 
                     </div>
                 </div>
@@ -258,6 +261,21 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             </div>
           </div>
         )
+    }
+
+    rematchButtonClick(){
+        socket.emit('play_again')
+        this.setState({gameState:2.5})
+    }
+
+    Rematch(){
+        var button = <button style={{marginBottom:'5px'}} type="button" className="btn btn-success w-100 " onClick={() => this.rematchButtonClick()}>{'Rematch'}</button>
+
+        if (this.state.gameState === 2)
+            return button
+        else 
+            return
+
     }
 
     Button(){
@@ -297,14 +315,10 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             button =     <button type="button" className="btn btn-danger w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
             
         }
-        else if (this.state.gameState === 2){
+        else if (this.state.gameState === 2 || this.state.gameState === 2.5 ){
             phrase = "Next"
-            button =     <div className="w-100">
-            <button type="button" className="btn btn-success w-100 " onClick={() => socket.emit('play_again')}>{'Rematch'}</button>
+            button =     <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
 
-            <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
-
-            </div>
         }
 
         return(
@@ -431,7 +445,7 @@ export class Chat extends Component<ChatProps,ChatState> {
 
         return(
             <div className="input-group mb-3 fixed-bottom" style={{position : "absolute", bottom: 0}}>
-                <div style={{marginBottom:"10px",backgroundColor:"whitesmoke", height:"40vh"}} className="overflow-auto border w-100">
+                <div style={{marginBottom:"5px",backgroundColor:"whitesmoke", height:"40vh"}} className="overflow-auto border w-100">
                 <ul id='chatlog' className="list-group">
                     {this.state.log.map((message,i) => <li className="list-group-item" key={i} style={{textAlign:'left', border:'none', backgroundColor:"whitesmoke"}}>
                         {this.NameTag(message)}
