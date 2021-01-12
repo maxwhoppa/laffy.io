@@ -352,7 +352,8 @@ type ChatState = {
 }
 
 export class Chat extends Component<ChatProps,ChatState> {
-    
+    messagesEndRef = React.createRef<HTMLDivElement>()
+
     constructor(props: ChatProps){
         super(props);
         this.state = ({
@@ -367,9 +368,8 @@ export class Chat extends Component<ChatProps,ChatState> {
     }
 
     scrollToBottom() {
-        animateScroll.scrollToBottom({
-          containerId: "chatlog"
-        });
+        if (this.messagesEndRef.current)
+            this.messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
     }
 
     onKeyPress(event: any){
@@ -399,13 +399,12 @@ export class Chat extends Component<ChatProps,ChatState> {
                 var log = this.state.log.concat('OPPONENT: '+ data.message);
 
             this.setState({log:log});
+            this.scrollToBottom();
         })
 
-        this.scrollToBottom();
     }
 
     componentDidUpdate(prevProps: ChatProps){
-        this.scrollToBottom()
 
         if (prevProps.gameState !== 0 && this.props.gameState === 0 )
             this.setState({log:[]})
@@ -456,6 +455,7 @@ export class Chat extends Component<ChatProps,ChatState> {
                         {this.NameTag(message)}
                         {message.substring(message.indexOf(":") + 1)}
                         </li>)}
+                        <div ref={this.messagesEndRef}/>
                 </ul>
                 </div>
                 {chatbox}
