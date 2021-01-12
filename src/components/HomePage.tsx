@@ -352,6 +352,7 @@ type ChatState = {
 }
 
 export class Chat extends Component<ChatProps,ChatState> {
+    
     constructor(props: ChatProps){
         super(props);
         this.state = ({
@@ -372,7 +373,7 @@ export class Chat extends Component<ChatProps,ChatState> {
     }
 
     onKeyPress(event: any){
-        if ( (event.key === "Enter" || event.key === "NumpadEnter")){
+        if ( (event.key === "Enter" || event.key === "NumpadEnter") && this.state.inputValue !== ''){
             this.sendMessage(this.state.inputValue)
             this.setState({
                 inputValue: ''
@@ -381,6 +382,8 @@ export class Chat extends Component<ChatProps,ChatState> {
     }
 
     componentDidMount(){
+        this.scrollToBottom()
+
         socket.on('typing', (data : any) =>{
             this.setState({typing:true})
         })
@@ -402,6 +405,8 @@ export class Chat extends Component<ChatProps,ChatState> {
     }
 
     componentDidUpdate(prevProps: ChatProps){
+        this.scrollToBottom()
+
         if (prevProps.gameState !== 0 && this.props.gameState === 0 )
             this.setState({log:[]})
 
@@ -446,10 +451,10 @@ export class Chat extends Component<ChatProps,ChatState> {
         return(
             <div className="input-group mb-3 fixed-bottom" style={{position : "absolute", bottom: 0}}>
                 <div style={{marginBottom:"5px",backgroundColor:"whitesmoke", height:"40vh"}} className="overflow-auto border w-100">
-                <ul id='chatlog' className="list-group">
+                <ul id='chatlog' className="list-group" style={{ maxWidth: "100%;", overflowX: "hidden", lineHeight: "normal"}}>
                     {this.state.log.map((message,i) => <li className="list-group-item" key={i} style={{textAlign:'left', border:'none', backgroundColor:"whitesmoke"}}>
                         {this.NameTag(message)}
-                        {message.split(':').pop()}
+                        {message.substring(message.indexOf(":") + 1)}
                         </li>)}
                 </ul>
                 </div>
