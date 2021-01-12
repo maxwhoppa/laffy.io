@@ -167,9 +167,9 @@ io.on('connection', function(socket) {
         if (client !== socket.id){
           if (io.sockets.connected[client].again){
             socket.started = false
-            client.started = false
+            io.sockets.connected[client].started = false
             socket.again = false
-            client.again = false
+            io.sockets.connected[client].again = false
             io.to(room).emit('new_message', {sender:'server',message : 'Starting in... ' })
             io.to(room).emit('countdown')
           }
