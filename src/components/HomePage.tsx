@@ -5,6 +5,11 @@ import {WebcamComponentMemo} from './WebcamComponent'
 import {VideoAnalyzerState} from './VideoAnalyzer'
 import {connectionUnderThreeSeconds,leaveRoom, socket, socketStuff} from '../api/sockets';
 import { animateScroll } from "react-scroll";
+import Background from '../pics/background.png';
+import BlackBackground from '../pics/black_background.png';
+
+import logo from '../pics/LAFFY_APP_MODEL_COLOR.png'
+import loading from '../pics/Animation_2.gif'
 
 
 export type HomePageState = {
@@ -231,7 +236,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             // <div>
             //     {(this.state.gameState === -1) ?this.Home(this.props) : <WebcamComponent/>} 
             // </div>
-            <div className="container-fluid" style={{height:"100%", padding: "0px"}}>
+            <div className="container-fluid" style={{height:"100%", padding: "0px",backgroundSize: 'contain', backgroundImage: `url(${Background})`}}>
             <div className="w-100 h-100 row"style={{marginLeft:"-10px"}}>
               <div className="w-100 h-100 col-sm-4">
              <WebcamComponentMemo
@@ -250,7 +255,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
               </div>
               <div className="col" >
                 <div className="mb-2 h-100" >
-                  <img className="rounded mx-auto d-block" src="LAFFY_APP_MODEL.png" alt='laffy logo' style={{width: "100%",position:"absolute", top:0, paddingRight: "20px"}}/>
+                  <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{width: "100%",position:"absolute", top:0, paddingRight: "20px"}}/>
                     <div className="input-group mb-3" style={{position:"absolute", bottom:0, paddingRight: "20px", lineHeight: 'normal'}}>
                         <p className="w-100">Players Detected: {this.state.numFaces}</p>
                         {this.Rematch()}
