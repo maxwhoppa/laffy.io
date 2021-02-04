@@ -82,16 +82,29 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
             return (
                 <div className="container-fluid h-100 mx-auto" >
                 <div className="w-100 h-100 row mx-auto">
-                <div className="w-100 h-100 col-sm-4 mx-auto">
-                <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{width: "80%"}}/>
+                <div className="w-100 h-100 col-sm-4 mx-auto" style={{lineHeight: 'normal'}}>
+                <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{width: "80%", marginBottom:'60px'}}/>
 
-                <button type="button" className="btn btn-info" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="bottom" data-content="Play With A Friend in a Private Room!" onClick={() => this.handleClick(gametype.PRIVATE)} style={{margin:'10px'}}>
+                <button type="button" className="btn btn-info" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="Play With A Friend in a Private Room!" onClick={() => this.handleClick(gametype.PRIVATE)} style={{margin:'10px'}}>
                     Private Game
                 </button>                  
 
-                <button type="button" className="btn btn-info" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="bottom" data-content="Play With A Random Opponnent!" onClick={() => this.handleClick(gametype.PUBLIC)} style={{margin:'10px'}}>
+                <button type="button" className="btn btn-info" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="Play With A Random Opponnent!" onClick={() => this.handleClick(gametype.PUBLIC)} style={{margin:'10px'}}>
                     Public Game
                 </button>             
+
+                <p style={{marginTop:'50px'}}> 
+                     Hi! Welcome To Laffy.io! <br/> <br/>
+                    Laffy.io is a video chat website where the first person who smile loses! Match up with friends or strangers and try to make the other person laugh!
+                    <br/>
+                    <br/>
+                    My name is Maxwell <a href='https://www.instagram.com/maxwhoppa/?hl=en'>(@Maxwhoppa)</a>. Laffy was created as a fun project idea that I wanted to turn into reality. If you like the game or want to send some feedback feel free to follow me / send me a message!
+                    If people show interest, I will continue to make improvements and add new features!
+
+                    <br/><br/>
+                    <i>Works best in chrome. If you are stuck on the loading screen, ensure that your camera is properly set up. </i>
+                </p>
+
                 </div>
                 </div>
                 <div style={{position: 'fixed', bottom: 0, right: 10}}>
