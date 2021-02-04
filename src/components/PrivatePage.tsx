@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 // import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import {WebcamComponentMemo} from './WebcamComponent'
 import {VideoAnalyzerState} from './VideoAnalyzer'
-import {connectionUnderThreeSeconds,leaveRoom, socket, socketStuff} from '../api/sockets';
+import {connectionUnderThreeSeconds,leaveRoom, socket, privateSocketStuff} from '../api/sockets';
 import { animateScroll } from "react-scroll";
 import Background from '../pics/background.png';
 import BlackBackground from '../pics/black_background.png';
@@ -12,7 +12,7 @@ import logo from '../pics/LAFFY_APP_MODEL_COLOR.png'
 import loading from '../pics/Animation_2.gif'
 
 
-export type HomePageState = {
+export type PrivatePageState = {
     // Gamestate:
     // -1 no camera, invalid position
     // 0 camera on, no connection, facial recognition active
@@ -50,16 +50,19 @@ export type HomePageState = {
 
     countdown: number
 
+    started: boolean
+
   }
 
-type HomePageProps = {
+type PrivatePageProps = {
+    id: string
 }
 
-export class HomePage extends Component<HomePageProps, HomePageState> {
+export class PrivatePage extends Component<PrivatePageProps, PrivatePageState> {
     video: HTMLVideoElement | null = null
     peerVideo: HTMLVideoElement | null = null
     
-    constructor(props: HomePageProps){
+    constructor(props: PrivatePageProps){
         super(props)
         this.handleWebcamChange = this.handleWebcamChange.bind(this);
         this.configureVideo = this.configureVideo.bind(this);
@@ -76,11 +79,11 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             winstreak:0,
             countdown:4,
             strikes: 5,
+            started: false
         }
 
         this.nextButtonClick = this.nextButtonClick.bind(this)
         this.rematchButtonClick = this.rematchButtonClick.bind(this)
-
     }
 
     onKeyPress(event: any){
@@ -95,7 +98,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
 
         socket.on('leave', () =>{
             leaveRoom({initiator:false})
-            this.setState({gameState:0, countdown:4})
+            this.setState({gameState:0, countdown:4, started:false})
             if (intervalID){
                 window.clearInterval(intervalID);
             }
@@ -138,7 +141,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
     
     }
 
-    componentDidUpdate(prevProps: HomePageProps, prevState: HomePageState) {
+    componentDidUpdate(prevProps: PrivatePageProps, prevState: PrivatePageState) {
     }
 
     componentWillUnmount() {
@@ -151,8 +154,11 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
 
     nextButtonClick(){
         if (this.state.gameState === 0 && this.state.faceDetectionActive){
-            socketStuff(this.video?.srcObject, this.peerVideo)
-            this.setState({gameState:.1})
+            if (this.props !== null){
+                this.setState({gameState:2})
+            }else{
+                console.log("I don't know what you're trying to do, but you should stop before you break something")
+            }
         }
         else if (this.state.gameState === .1 || this.state.gameState === .5){
             leaveRoom({initiator:true})
@@ -176,10 +182,15 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
     handleWebcamChange(VideoAnalyzerState: VideoAnalyzerState){
         var gameState = this.state.gameState;
         var strikes = this.state.strikes;
+        var started = this.state.started;
         if (VideoAnalyzerState.faceDetectionActive){
+            if (!started){
+                privateSocketStuff(this.video?.srcObject, this.peerVideo, this.props.id)
+                started = true
+            }
 
             if (gameState === -1 && VideoAnalyzerState.numFaces !== 0){
-                gameState = 0
+                gameState = 2
             }
             else if (gameState === 0 && VideoAnalyzerState.numFaces === 0){
                 gameState = -1
@@ -204,7 +215,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             }
 
             if (VideoAnalyzerState.userSmiled && !this.state.userSmiled)
-            console.log('printed from homepage: YOU SMILeD BiTCh')
+            console.log('printed from PrivatePage: YOU SMILeD BiTCh')
 
             if (VideoAnalyzerState.numFaces === 0 && this.state.numFaces !== 0)
                 console.log('no faces detected')
@@ -218,7 +229,8 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
                 userSmiled: VideoAnalyzerState.userSmiled,
                 numFaces: VideoAnalyzerState.numFaces,
                 gameState: gameState,
-                strikes:strikes
+                strikes:strikes,
+                started:started
             });
         }
     }
@@ -256,11 +268,11 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
               </div>
               <div className="col" >
                 <div className="mb-2 h-100" >
-                  <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{width: "100%",position:"absolute", top:0, paddingRight: "20px"}}/>
+                    {this.Logo()}
                     <div className="input-group mb-3" style={{position:"absolute", bottom:0, paddingRight: "20px", lineHeight: 'normal'}}>
                         <p className="w-100">Players Detected: {this.state.numFaces}</p>
                         {this.Rematch()}
-                        {this.Button()} 
+                        {/* {this.Button()} */}
                     </div>
                 </div>
               </div>
@@ -269,18 +281,28 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
         )
     }
 
+    Logo(){
+        if (this.state.userSmiled === true)
+         return  <img className="rounded mx-auto d-block" src={loading} alt='laffy logo' style={{width: "100%",position:"absolute", top:0, paddingRight: "0px"}}/>
+
+        else
+        return  <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{width: "100%",position:"absolute", top:0, paddingRight: "0px"}}/>
+    }
+
     rematchButtonClick(){
         socket.emit('play_again')
         this.setState({gameState:2.5})
     }
 
     Rematch(){
-        var button = <button style={{marginBottom:'5px'}} type="button" className="btn btn-success w-100 " onClick={() => this.rematchButtonClick()}>{'Rematch'}</button>
+        var button;
+        var phrase = "Loading..."
 
-        if (this.state.gameState === 2)
-            return button
-        else 
-            return
+        if (this.state.gameState === -1)
+            return <button type="button" className="btn btn-secondary w-100 " disabled >{phrase}</button>
+        else if (this.state.gameState === 2)
+            return <button type="button" className="btn btn-success w-100 " onClick={() => this.rematchButtonClick()}>{'Ready Up'}</button>
+        
 
     }
 
@@ -322,8 +344,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             
         }
         else if (this.state.gameState === 2 || this.state.gameState === 2.5 ){
-            phrase = "Next"
-            button =     <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+            button = null
 
         }
 

@@ -65,6 +65,24 @@ io.on('connection', function(socket) {
       clients++;
     });
 
+  socket.on('NewPrivateClient', data =>{
+    io.in(room).clients((err , clients) => {
+      if (data.id !== null){
+        console.log('data.id not null')
+        if (clients.length > 1){
+          io.to(socket.id).emit('new_message', {sender:'server', message : 'Room ' + data.id + ' full.'})
+          console.log('room full '+data.id)
+        }
+        else{
+          io.to(data.id).emit('CreatePeer')
+          socket.join(data.id)
+          io.to(socket.id).emit('new_message', {sender:'server', message : 'Room: '+data.id})
+          console.log('joining '+data.id)
+        }
+      }
+    })
+  })
+
   socket.on('Offer', SendOffer)
   socket.on('Answer', SendAnswer)
 

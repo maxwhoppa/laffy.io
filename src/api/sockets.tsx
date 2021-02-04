@@ -48,6 +48,15 @@ export function socketStuff(s : any , pv: any) {
     socket.emit('NewClient')
 }
 
+export function privateSocketStuff(s : any , pv: any, id: string) {
+    stream = s;
+    peerVideo = pv;
+
+    console.log('socket stuff2')
+    
+    socket.emit('NewPrivateClient', {id:id})
+}
+
 export default client
 
 function InitPeer(type: any ){
