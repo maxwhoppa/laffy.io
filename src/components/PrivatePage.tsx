@@ -3,12 +3,11 @@ import React, {Component} from 'react';
 // import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import {WebcamComponentMemo} from './WebcamComponent'
 import {VideoAnalyzerState} from './VideoAnalyzer'
-import {connectionUnderThreeSeconds,leaveRoom, socket, privateSocketStuff} from '../api/sockets';
-import { animateScroll } from "react-scroll";
+import {leaveRoom, socket, privateSocketStuff} from '../api/sockets';
 import Background from '../pics/background.png';
 import BlackBackground from '../pics/black_background.png';
 
-import logo from '../pics/LAFFY_APP_MODEL_COLOR.png'
+import logo from '../pics/lineup.png'
 import loading from '../pics/Animation_2.gif'
 
 
@@ -88,7 +87,7 @@ export class PrivatePage extends Component<PrivatePageProps, PrivatePageState> {
 
     onKeyPress(event: any){
         if(event.keyCode === 27) {
-            this.nextButtonClick();
+            this.rematchButtonClick();
         }
     }
 
@@ -308,7 +307,6 @@ export class PrivatePage extends Component<PrivatePageProps, PrivatePageState> {
 
     Button(){
         var phrase = "";
-        var overhead = "Number of Players: " + this.state.numFaces;
         var button;
         if (this.state.gameState === -1){
             if (this.state.faceDetectionActive === false){
@@ -418,12 +416,13 @@ export class Chat extends Component<ChatProps,ChatState> {
             this.setState({typing:false})
         })
         socket.on('new_message', (data: any) => {
+            var log;
             if (data.sender === 'server')
-                var log = this.state.log.concat('SERVER: '+ data.message);
+                log = this.state.log.concat('SERVER: '+ data.message);
             else if (data.sender === socket.id)
-                var log = this.state.log.concat('YOU: '+ data.message);
+                log = this.state.log.concat('YOU: '+ data.message);
             else 
-                var log = this.state.log.concat('OPPONENT: '+ data.message);
+                log = this.state.log.concat('OPPONENT: '+ data.message);
 
             this.setState({log:log});
             this.scrollToBottom();
@@ -432,18 +431,18 @@ export class Chat extends Component<ChatProps,ChatState> {
     }
 
     componentDidUpdate(prevProps: ChatProps){
-
+        var log;
         if (prevProps.gameState !== 0 && this.props.gameState === 0 )
             this.setState({log:[]})
 
         if (this.props.gameState === .5 && this.props.countdown !== prevProps.countdown){
-            var log = this.state.log
+            log = this.state.log
             log[log.length-1] = log[log.length-1] +  this.props.countdown + "... "
 
             this.setState({log:log});
         }
         if (this.props.gameState === 1 && this.props.countdown !== prevProps.countdown){
-            var log = this.state.log
+            log = this.state.log
             log[log.length-1] = log[log.length-1] + "Go!"
             this.setState({log:log});
 
@@ -491,12 +490,13 @@ export class Chat extends Component<ChatProps,ChatState> {
     }
 
     NameTag(message:string){
+        var tag;
         if (message.split(':')[0] === "SERVER")
-            var tag = <b style={{color:"grey"}}>SERVER:</b>
+            tag = <b style={{color:"grey"}}>SERVER:</b>
         else if (message.split(':')[0] === "YOU")
-            var tag = <b style={{color:"blue"}}>YOU:</b>
+            tag = <b style={{color:"blue"}}>YOU:</b>
         else
-            var tag = <b style={{color:"red"}}>OPPONENT:</b>
+            tag = <b style={{color:"red"}}>OPPONENT:</b>
 
         return tag
     }

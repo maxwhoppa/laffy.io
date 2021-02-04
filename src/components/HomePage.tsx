@@ -52,8 +52,7 @@ export type HomePageState = {
 
   }
 
-type HomePageProps = {
-}
+type HomePageProps = {}
 
 export class HomePage extends Component<HomePageProps, HomePageState> {
     video: HTMLVideoElement | null = null

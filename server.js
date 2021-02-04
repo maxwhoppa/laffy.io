@@ -65,8 +65,18 @@ io.on('connection', function(socket) {
       clients++;
     });
 
+  socket.on('checkFull', data =>{
+    if (data && data.id !== null)
+    io.in(data.id).clients((err , clients) => {
+      if (clients.length > 1)
+        io.to(socket.id).emit('roomFull')
+      else
+        io.to(socket.id).emit('roomOpen')
+    })
+  })
+
   socket.on('NewPrivateClient', data =>{
-    io.in(room).clients((err , clients) => {
+    io.in(data.id).clients((err , clients) => {
       if (data.id !== null){
         console.log('data.id not null')
         if (clients.length > 1){
@@ -151,7 +161,7 @@ io.on('connection', function(socket) {
           if (data.type === 'smiled')
             io.to(client).emit('new_message',{sender:'server',message : 'You Win! Your Opponent Smiled First!'})
           else if (data.type ==='no_face')
-            io.to(client).emit('new_message',{sender:'server',message : 'You Win! Your Opponent Left The Screen!'})
+            io.to(client).emit('new_message',{sender:'server',message : 'You Win! Your Opponent Hid Their Face!'})
 
         }
         else {
@@ -162,7 +172,7 @@ io.on('connection', function(socket) {
           if (data.type === 'smiled')
             io.to(client).emit('new_message',{sender:'server',message : 'You Lose! You Smiled First!'})
           else if (data.type ==='no_face')
-            io.to(client).emit('new_message',{sender:'server',message : 'You Lose! You Left The Screen!'})
+            io.to(client).emit('new_message',{sender:'server',message : 'You Lose! You Hid Your Face!'})
 
         }
         if (io.sockets.connected[client])

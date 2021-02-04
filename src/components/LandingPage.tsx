@@ -7,6 +7,7 @@ import { socket} from '../api/sockets';
 
 
 import { Terms } from './Terms';
+import { FaceLandmarkNet } from 'face-api.js';
 
 
 
@@ -23,7 +24,9 @@ enum gametype {
 type LandingPageState = {
     game: gametype,
     id: string | null,
-    inputValue: string
+    inputValue: string,
+    full: boolean,
+    joined: boolean
 }
 
 export class LandingPage extends Component<LandingPageProps,LandingPageState> {
@@ -33,7 +36,9 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
         this.state = {
             game: gametype.NONE,
             id : null,
-            inputValue: ''
+            inputValue: '',
+            full: false,
+            joined: false,
         }
         this.handleClick = this.handleClick.bind(this);
         this.handleChange = this.handleChange.bind(this);
@@ -41,6 +46,13 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
     }
 
     componentDidMount() {
+        socket.on('roomFull', () =>{
+            this.setState({full:true})
+        })
+
+        socket.on('roomOpen', () =>{
+            this.setState({joined:true})
+        })
     }
 
     componentDidUpdate(prevState: LandingPageState) {
@@ -57,13 +69,16 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
 
     handleChange(e: any){
         this.setState({
-            inputValue: e.target.value
+            inputValue: e.target.value,
+            full:false
         })
     }
     
     render(){
         ($('[data-toggle="popover"]')as any).popover('dispose')
-        if (this.state.game === gametype.NONE)
+        if (this.state.joined)
+            return(<PrivatePage id={this.state.inputValue}/>)
+        else if (this.state.game === gametype.NONE)
             return (
                 <div className="container-fluid h-100 mx-auto" >
                 <div className="w-100 h-100 row mx-auto">
@@ -91,10 +106,10 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
                 <div className="w-100 h-100 col-sm-4 mx-auto">
                 <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{width: "80%"}}/>
 
-                <input type="text" id='textEntry' onChange={this.handleChange} value={this.state.inputValue} className="form-control" placeholder="Room ID" aria-label="Username" aria-describedby="basic-addon1" style={{marginTop:'50px'}}/>
-         
-
-                <button type="button" className="btn btn-success w-100 " style={{marginTop:'5px'}}  onClick={() => this.handleClick(gametype.PRIVATESTART)}>Join Room</button>  
+                {this.FullMessage()}
+                <input type="text" id='textEntry' onChange={this.handleChange} value={this.state.inputValue} className="form-control" placeholder="Room ID" aria-label="Username" aria-describedby="basic-addon1" />
+        
+                <button type="button" className="btn btn-success w-100 " style={{marginTop:'5px'}}  onClick={() => socket.emit('checkFull',{id:this.state.inputValue})}>Join Room</button>  
                 </div>
                 </div>
                 <div style={{position: 'fixed', bottom: 0, right: 10}}>
@@ -102,10 +117,20 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
                 </div>
                 </div>
             )
-        else if (this.state.game === gametype.PRIVATESTART)
-                return(<PrivatePage id={this.state.inputValue}/>)
         else if (this.state.game === gametype.PUBLIC)
             return (<HomePage/>)
         else return (<Terms/>)
+    }
+
+    FullMessage(){
+        var phrase = 'Enter Room ID'
+        var color = 'black'
+        if (this.state.full){
+            phrase = 'Room Full'
+            color = 'red'
+        }
+
+    return <p style={{marginTop:'50px',color:color}}>{phrase}</p>
+
     }
 }
