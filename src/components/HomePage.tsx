@@ -8,7 +8,7 @@ import { animateScroll } from "react-scroll";
 import Background from '../pics/background.png';
 import BlackBackground from '../pics/black_background.png';
 
-import logo from '../pics/LAFFY_APP_MODEL_COLOR.png'
+import logo from '../pics/lineup.png'
 import loading from '../pics/Animation_2.gif'
 
 
@@ -255,7 +255,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
               </div>
               <div className="col" >
                 <div className="mb-2 h-100" >
-                  <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{width: "100%",position:"absolute", top:0, paddingRight: "20px"}}/>
+                    {this.Logo()}
                     <div className="input-group mb-3" style={{position:"absolute", bottom:0, paddingRight: "20px", lineHeight: 'normal'}}>
                         <p className="w-100">Players Detected: {this.state.numFaces}</p>
                         {this.Rematch()}
@@ -281,6 +281,14 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
         else 
             return
 
+    }
+
+    Logo(){
+        if (this.state.userSmiled === true)
+         return  <img className="rounded mx-auto d-block" src={loading} alt='laffy logo' style={{width: "100%",position:"absolute", top:0, paddingRight: "0px"}}/>
+
+        else
+        return  <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{width: "100%",position:"absolute", top:0, paddingRight: "0px"}}/>
     }
 
     Button(){
