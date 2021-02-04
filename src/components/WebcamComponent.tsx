@@ -70,9 +70,9 @@ export class WebcamComponent extends Component<WebcamComponentProps, WebcamCompo
     return (
     <div className="h-100 media-body">
       <video ref={ref => { this.video = ref; }} muted autoPlay={true}  className="h-50 w-100 border rounded"style={
-        {transform: 'scaleX(-1)',
+        {
         backgroundColor:'black'                }}/>
-      <video ref={ref => { this.peerVideo = ref; }} autoPlay={true} className="h-50 w-100 border rounded" style={{transform: 'scaleX(-1)',backgroundColor:'black'  }} />
+      <video ref={ref => { this.peerVideo = ref; }} autoPlay={true} className="h-50 w-100 border rounded" style={{backgroundColor:'black'  }} />
       <VideoAnalyzer localStream={this.state.localStream} handleWebcamChange={this.props.handleWebcamChange}/>
     </div>
     )}
