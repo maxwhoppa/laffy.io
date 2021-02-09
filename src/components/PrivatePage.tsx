@@ -520,7 +520,7 @@ export class Chat extends Component<ChatProps,ChatState> {
         if (isMobile)
             return (
                 <div className="input-group mb-3 fixed-bottom" style={{position : "fixed", width:'50%', bottom: 0}}>
-                <div style={{marginBottom:"5px",backgroundColor:"whitesmoke", height:"40vh"}} className="overflow-auto border w-100">
+                <div style={{marginBottom:"5px",backgroundColor:"whitesmoke", height:"30vh"}} className="overflow-auto border w-100">
                 <ul id='chatlog' className="list-group" style={{ maxWidth: "100%", overflowX: "hidden", lineHeight: "normal"}}>
                     {this.state.log.map((message,i) => <li className="list-group-item" key={i} style={{textAlign:'left', border:'none', backgroundColor:"whitesmoke"}}>
                         {this.NameTag(message)}
