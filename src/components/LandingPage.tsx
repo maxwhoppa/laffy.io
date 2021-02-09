@@ -110,7 +110,7 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
                     If people show interest, I will continue to make improvements and add new features!
 
                     <br/><br/>
-                    <i>Works best in chrome. If you are stuck on the loading screen, ensure that your camera is properly set up. </i>
+                    <i>Works best in chrome for PC, Safari on iPhone. If you are stuck on the loading screen, ensure that your camera is properly set up. </i>
                 </p>
 
                 </div>

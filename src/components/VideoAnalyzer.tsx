@@ -66,7 +66,7 @@ export type VideoAnalyzerState = {
 
 
         detections.forEach(e => {
-          if (e.expressions.happy >= .9){
+          if (e.expressions.happy >= .95){
             currentState.userSmiled = true;
             console.log('smiled')
           }

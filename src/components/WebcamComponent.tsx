@@ -38,10 +38,6 @@ export class WebcamComponent extends Component<WebcamComponentProps, WebcamCompo
   }
 
   componentDidMount(){
-    if (this.props.width <= 500){
-      window.scroll(0, document.documentElement.scrollHeight)
-    }
-
   }
   
   componentDidUpdate(prevProps: WebcamComponentProps) {
@@ -76,16 +72,16 @@ export class WebcamComponent extends Component<WebcamComponentProps, WebcamCompo
     const isMobile = width <= 500;
     var video, peer;
     if (isMobile){
-        video = <video ref={ref => { this.video = ref; }} muted playsInline={true} autoPlay={true}  className="border rounded"style={
+        video = <video ref={ref => { this.video = ref; }} muted playsInline={true} webkit-playsinline="playsinline" autoPlay={true}  className="border rounded"style={
           {
             transform: 'scaleX(-1)',
-            width: '25%',
+            width: '20%',
             top: '10px',
             left:'10px',
             position: 'fixed',
 
           }}/>
-      peer = <video ref={ref => { this.peerVideo = ref; }} playsInline={true} autoPlay={true} className="h-50 w-100 border rounded" style={
+      peer = <video ref={ref => { this.peerVideo = ref; }} playsInline={true} webkit-playsinline="playsinline" autoPlay={true} className="h-50 w-100 border rounded" style={
         {
         backgroundColor:'black',
         transform: 'scaleX(-1)',

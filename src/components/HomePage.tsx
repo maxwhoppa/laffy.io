@@ -91,6 +91,13 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
     }
 
     componentDidMount() {
+        window.onorientationchange = function () {
+            window.scroll(0, document.documentElement.scrollHeight)
+        } 
+        if (this.props.width <= 500){
+            window.scroll(0, document.documentElement.scrollHeight)
+        }
+
         var intervalID : any;
         document.addEventListener("keydown", this.onKeyPress, false);
 
@@ -234,6 +241,44 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
     }
     
     render(){
+        const { width } = this.props;
+        const isMobile = width <= 500;
+        var tag;
+        
+        var buttons = <div className="input-group mb-3" style={{position:"absolute", bottom:0, paddingRight: "20px", lineHeight: 'normal'}}>
+        <p className="w-100">Players Detected: {this.state.numFaces}</p>
+        {this.Rematch()}
+        </div>
+
+        if (isMobile){
+            buttons =<div className="input-group mb-3" style={{position:"fixed", width:'50%', bottom:0, paddingRight: "20px", lineHeight: 'normal'}}>
+            <p className="w-100">Players Detected: {this.state.numFaces}</p>
+            {this.Rematch()}
+            </div>
+            if (this.state.userSmiled){
+                tag = <img className="rounded mx-auto d-block" src={loading} alt='laffy logo' style={{
+                    width: '15%',
+                    top: '10px',
+                    right:'0px',
+                    position: 'fixed',
+                }}/>
+            }
+            else {
+                tag = <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{
+                    width: '15%',
+                    top: '10px',
+                    right:'0px',
+                    position: 'fixed',
+                }}/>
+            }
+        }
+        else {
+            if (this.state.userSmiled){
+                tag = <img className="rounded mx-auto d-block" src={loading} alt='laffy logo' style={{width: "100%",position:"absolute", top:0, paddingRight: "0px"}}/>
+            }
+            else 
+                tag = <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{width: "100%",position:"absolute", top:0, paddingRight: "0px"}}/>
+        }
         return (
             // <div>
             //     {(this.state.gameState === -1) ?this.Home(this.props) : <WebcamComponent/>} 
@@ -244,26 +289,19 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
              <WebcamComponentMemo
               handleWebcamChange={this.handleWebcamChange}
               configureVideo={this.configureVideo}
-              width = {this.props.width}
+              width={this.props.width}
               />
               
               </div>
               <div className="col-6 h-100">
                 <div className="mb-2 h-100">
-                    {/* <h1 className="Display text-center">Players Detected</h1>
-                    <h3 className="Display text-center">{this.state.numFaces}</h3>
-                    <h1 className="Display text-center">Winstreak: {this.state.winstreak}</h1> */}
-                    <Chat gameState={this.state.gameState} countdown={this.state.countdown}/>
+                    <Chat gameState={this.state.gameState} countdown={this.state.countdown} width={this.props.width}/>
                 </div>
               </div>
               <div className="col" >
                 <div className="mb-2 h-100" >
-                    {this.Logo()}
-                    <div className="input-group mb-3" style={{position:"absolute", bottom:0, paddingRight: "20px", lineHeight: 'normal'}}>
-                        <p className="w-100">Players Detected: {this.state.numFaces}</p>
-                        {this.Rematch()}
-                        {this.Button()} 
-                    </div>
+                    {tag}
+                    {buttons}
                 </div>
               </div>
             </div>
@@ -359,7 +397,8 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
 
 type ChatProps = {
     gameState: number,
-    countdown: number
+    countdown: number,
+    width: any
 }
 type ChatState = {
     log: Array<string>,
@@ -458,13 +497,17 @@ export class Chat extends Component<ChatProps,ChatState> {
     }
 
     render(){
+        const { width } = this.props;
+        const isMobile = width <= 500;
+
         var chatbox =  <input type="text" id='textEntry' value={this.state.inputValue} onChange={this.handleChange} onKeyDown={this.onKeyPress} className="form-control" disabled placeholder="Press Enter To Send Message" aria-label="Username" aria-describedby="basic-addon1"/>
         
         if (this.props.gameState >= 1)
             chatbox =  <input type="text" id='textEntry' value={this.state.inputValue} onChange={this.handleChange} onKeyDown={this.onKeyPress} className="form-control" placeholder="Press Enter To Send Message" aria-label="Username" aria-describedby="basic-addon1"/>
 
-        return(
-            <div className="input-group mb-3 fixed-bottom" style={{position : "absolute", bottom: 0}}>
+        if (isMobile)
+            return (
+                <div className="input-group mb-3 fixed-bottom" style={{position : "fixed", width:'50%', bottom: 0}}>
                 <div style={{marginBottom:"5px",backgroundColor:"whitesmoke", height:"40vh"}} className="overflow-auto border w-100">
                 <ul id='chatlog' className="list-group" style={{ maxWidth: "100%", overflowX: "hidden", lineHeight: "normal"}}>
                     {this.state.log.map((message,i) => <li className="list-group-item" key={i} style={{textAlign:'left', border:'none', backgroundColor:"whitesmoke"}}>
@@ -476,7 +519,22 @@ export class Chat extends Component<ChatProps,ChatState> {
                 </div>
                 {chatbox}
             </div>
-        )
+            )
+        else 
+            return (
+                <div className="input-group mb-3 fixed-bottom" style={{position : "absolute", bottom: 0}}>
+                    <div style={{marginBottom:"5px",backgroundColor:"whitesmoke", height:"40vh"}} className="overflow-auto border w-100">
+                    <ul id='chatlog' className="list-group" style={{ maxWidth: "100%", overflowX: "hidden", lineHeight: "normal"}}>
+                        {this.state.log.map((message,i) => <li className="list-group-item" key={i} style={{textAlign:'left', border:'none', backgroundColor:"whitesmoke"}}>
+                            {this.NameTag(message)}
+                            {message.substring(message.indexOf(":") + 1)}
+                            </li>)}
+                            <div ref={this.messagesEndRef}/>
+                    </ul>
+                    </div>
+                    {chatbox}
+                </div>
+            )
     }
 
     NameTag(message:string){
