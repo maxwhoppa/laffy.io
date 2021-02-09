@@ -248,12 +248,14 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
         var buttons = <div className="input-group mb-3" style={{position:"absolute", bottom:0, paddingRight: "20px", lineHeight: 'normal'}}>
         <p className="w-100">Players Detected: {this.state.numFaces}</p>
         {this.Rematch()}
+        {this.Button()}
         </div>
 
         if (isMobile){
             buttons =<div className="input-group mb-3" style={{position:"fixed", width:'50%', bottom:0, paddingRight: "20px", lineHeight: 'normal'}}>
             <p className="w-100">Players Detected: {this.state.numFaces}</p>
             {this.Rematch()}
+            {this.Button()}
             </div>
             if (this.state.userSmiled){
                 tag = <img className="rounded mx-auto d-block" src={loading} alt='laffy logo' style={{
