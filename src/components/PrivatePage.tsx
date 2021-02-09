@@ -54,6 +54,7 @@ export type PrivatePageState = {
   }
 
 type PrivatePageProps = {
+    width: any
     id: string
 }
 
@@ -244,6 +245,34 @@ export class PrivatePage extends Component<PrivatePageProps, PrivatePageState> {
     }
     
     render(){
+        const { width } = this.props;
+        const isMobile = width <= 500;
+        var tag;
+        if (isMobile){
+            if (this.state.userSmiled){
+                tag = <img className="rounded mx-auto d-block" src={loading} alt='laffy logo' style={{
+                    width: '20%',
+                    top: '10px',
+                    right:'10px',
+                    position: 'fixed',
+                }}/>
+            }
+            else {
+                tag = <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{
+                    width: '20%',
+                    top: '10px',
+                    right:'10px',
+                    position: 'fixed',
+                }}/>
+            }
+        }
+        else {
+            if (this.state.userSmiled){
+                tag = <img className="rounded mx-auto d-block" src={loading} alt='laffy logo' style={{width: "100%",position:"absolute", top:0, paddingRight: "0px"}}/>
+            }
+            else 
+                tag = <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{width: "100%",position:"absolute", top:0, paddingRight: "0px"}}/>
+        }
         return (
             // <div>
             //     {(this.state.gameState === -1) ?this.Home(this.props) : <WebcamComponent/>} 
@@ -254,6 +283,7 @@ export class PrivatePage extends Component<PrivatePageProps, PrivatePageState> {
              <WebcamComponentMemo
               handleWebcamChange={this.handleWebcamChange}
               configureVideo={this.configureVideo}
+              width={this.props.width}
               />
               
               </div>
@@ -267,7 +297,7 @@ export class PrivatePage extends Component<PrivatePageProps, PrivatePageState> {
               </div>
               <div className="col" >
                 <div className="mb-2 h-100" >
-                    {this.Logo()}
+                    {tag}
                     <div className="input-group mb-3" style={{position:"absolute", bottom:0, paddingRight: "20px", lineHeight: 'normal'}}>
                         <p className="w-100">Players Detected: {this.state.numFaces}</p>
                         {this.Rematch()}

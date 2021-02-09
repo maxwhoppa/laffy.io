@@ -52,7 +52,9 @@ export type HomePageState = {
 
   }
 
-type HomePageProps = {}
+type HomePageProps = {
+    width: any
+}
 
 export class HomePage extends Component<HomePageProps, HomePageState> {
     video: HTMLVideoElement | null = null
@@ -242,6 +244,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
              <WebcamComponentMemo
               handleWebcamChange={this.handleWebcamChange}
               configureVideo={this.configureVideo}
+              width = {this.props.width}
               />
               
               </div>

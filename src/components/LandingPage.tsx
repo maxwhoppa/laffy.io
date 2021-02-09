@@ -26,7 +26,8 @@ type LandingPageState = {
     id: string | null,
     inputValue: string,
     full: boolean,
-    joined: boolean
+    joined: boolean,
+    width: any
 }
 
 export class LandingPage extends Component<LandingPageProps,LandingPageState> {
@@ -39,13 +40,19 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
             inputValue: '',
             full: false,
             joined: false,
+            width: window.innerWidth,
         }
         this.handleClick = this.handleClick.bind(this);
         this.handleChange = this.handleChange.bind(this);
-
     }
 
+    handleWindowSizeChange = () => {
+        this.setState({ width: window.innerWidth });
+      };
+
     componentDidMount() {
+        window.addEventListener('resize', this.handleWindowSizeChange);
+
         socket.on('roomFull', () =>{
             this.setState({full:true})
         })
@@ -59,6 +66,7 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
     }
 
     componentWillUnmount() {
+        window.removeEventListener('resize', this.handleWindowSizeChange);
     }
 
     handleClick(val:gametype){
@@ -77,7 +85,7 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
     render(){
         ($('[data-toggle="popover"]')as any).popover('dispose')
         if (this.state.joined)
-            return(<PrivatePage id={this.state.inputValue}/>)
+            return(<PrivatePage width = {this.state.width} id={this.state.inputValue}/>)
         else if (this.state.game === gametype.NONE)
             return (
                 <div className="container-fluid h-100 mx-auto" >
@@ -131,7 +139,7 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
                 </div>
             )
         else if (this.state.game === gametype.PUBLIC)
-            return (<HomePage/>)
+            return (<HomePage width = {this.state.width}/>)
         else return (<Terms/>)
     }
 

@@ -9,6 +9,7 @@ import {socketStuff} from '../api/sockets';
 import { configure } from '@testing-library/react';
 
 
+
 type WebcamComponentState = {
   localStream: HTMLVideoElement | null
 }
@@ -16,6 +17,7 @@ type WebcamComponentState = {
 export type WebcamComponentProps = {
   handleWebcamChange: any
   configureVideo: any
+  width: any
 }
 
 export class WebcamComponent extends Component<WebcamComponentProps, WebcamComponentState> {
@@ -36,11 +38,14 @@ export class WebcamComponent extends Component<WebcamComponentProps, WebcamCompo
   }
 
   componentDidMount(){
+    if (this.props.width <= 500){
+      window.scroll(0, document.documentElement.scrollHeight)
+    }
+
   }
   
   componentDidUpdate(prevProps: WebcamComponentProps) {
     console.log("rerendered webcamcomponent")
-    // socketStuff(this.video?.srcObject, this.peerVideo)
   }
 
   componentWillUnmount() {
@@ -67,15 +72,49 @@ export class WebcamComponent extends Component<WebcamComponentProps, WebcamCompo
   }
 
   render(){
+    const { width } = this.props;
+    const isMobile = width <= 500;
+    var video, peer;
+    if (isMobile){
+        video = <video ref={ref => { this.video = ref; }} muted playsInline={true} autoPlay={true}  className="border rounded"style={
+          {
+            transform: 'scaleX(-1)',
+            width: '25%',
+            top: '10px',
+            left:'10px',
+            position: 'fixed',
+
+          }}/>
+      peer = <video ref={ref => { this.peerVideo = ref; }} playsInline={true} autoPlay={true} className="h-50 w-100 border rounded" style={
+        {
+        backgroundColor:'black',
+        transform: 'scaleX(-1)',
+        position: 'fixed',
+        top:0,
+        left:0,
+        width:'100%',
+
+        }} />
+
+    }
+    else{
+      video = <video ref={ref => { this.video = ref; }} muted playsInline={true} autoPlay={true}  className="h-50 w-100 border rounded"style={
+        {transform: 'scaleX(-1)',
+        backgroundColor:'black'                
+      }}/>
+      peer = <video ref={ref => { this.peerVideo = ref; }} playsInline={true} autoPlay={true} className="h-50 w-100 border rounded" style={
+        {
+          backgroundColor:'black',
+          transform: 'scaleX(-1)'  
+        }} />
+    }
     return (
     <div className="h-100 media-body">
-      <video ref={ref => { this.video = ref; }} muted playsInline={true} autoPlay={true}  className="h-50 w-100 border rounded"style={
-        {
-        backgroundColor:'black'                }}/>
-      <video ref={ref => { this.peerVideo = ref; }} playsInline={true} autoPlay={true} className="h-50 w-100 border rounded" style={{backgroundColor:'black'  }} />
+      {peer}
+      {video}
       <VideoAnalyzer localStream={this.state.localStream} handleWebcamChange={this.props.handleWebcamChange}/>
     </div>
-    )}
+  )}
 }
 
 
