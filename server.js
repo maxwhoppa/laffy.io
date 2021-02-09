@@ -84,8 +84,8 @@ io.on('connection', function(socket) {
           console.log('room full '+data.id)
         }
         else{
-          io.to(data.id).emit('CreatePeer')
           socket.join(data.id)
+          io.to(data.id).emit('CreatePeer')
           io.to(socket.id).emit('new_message', {sender:'server', message : 'Room: '+data.id})
           console.log('joining '+data.id)
         }

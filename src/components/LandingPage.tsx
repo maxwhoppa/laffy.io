@@ -44,6 +44,7 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
         }
         this.handleClick = this.handleClick.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.checkFull = this.checkFull.bind(this);
     }
 
     handleWindowSizeChange = () => {
@@ -80,6 +81,10 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
             inputValue: e.target.value,
             full:false
         })
+    }
+
+    checkFull(){
+        socket.emit('checkFull',{id:this.state.inputValue})
     }
     
     render(){
@@ -130,7 +135,7 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
                 {this.FullMessage()}
                 <input type="text" id='textEntry' onChange={this.handleChange} value={this.state.inputValue} className="form-control" placeholder="Room ID" aria-label="Username" aria-describedby="basic-addon1" />
         
-                <button type="button" className="btn btn-success w-100 " style={{marginTop:'5px'}}  onClick={() => socket.emit('checkFull',{id:this.state.inputValue})}>Join Room</button>  
+                <button type="button" className="btn btn-success w-100 " style={{marginTop:'5px'}}  onClick={this.checkFull}>Join Room</button>  
                 </div>
                 </div>
                 <div style={{position: 'fixed', bottom: 0, right: 10}}>
