@@ -98,7 +98,7 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
         else if (this.state.game === gametype.NONE)
             return (
                 <div className="h-100 mx-auto" style={{padding:'0'}} >
-                <h1 style={{position: 'absolute',right:'10px',top:'10px',fontSize: '1.5em',color: '#fcd766'}}>{playerNumber}+ Currently Playing</h1>
+                <h1 style={{position: 'absolute',right:'10px',top:'10px',fontSize: '1.5em',color: '#fcd766'}}>{playerNumber} Players Online</h1>
                 <div className="w-100 h-100 row mx-auto">
                 <div className="w-100 h-100 col-sm-4 mx-auto" style={{lineHeight: 'normal'}}>
                 <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{width: "80%", margin:'60px'}}/>
@@ -129,7 +129,7 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
         else if (this.state.game === gametype.PRIVATE)
             return (
                 <div className="h-100 mx-auto" style={{padding:'0'}} >
-                <h1 style={{position: 'absolute',right:'10px',top:'10px',fontSize: '1.5em',color: '#fcd766'}}>{playerNumber}+ Players Online</h1>
+                <h1 style={{position: 'absolute',right:'10px',top:'10px',fontSize: '1.5em',color: '#fcd766'}}>{playerNumber} Players Online</h1>
                 <div className="w-100 h-100 row mx-auto">
                 <div className="w-100 h-100 col-sm-4 mx-auto">
                 <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{width: "80%", margin:'60px'}}/>
