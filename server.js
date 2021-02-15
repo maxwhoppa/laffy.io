@@ -29,10 +29,6 @@ clients = 0
 
 app.use(express.static(path.join(__dirname, 'build')));
 
-app.get('/ping', function (req, res) {
- return res.send('pong');
-});
-
 app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
@@ -40,6 +36,8 @@ app.get('/', function (req, res) {
 queue = {}
 
 io.on('connection', function(socket) {
+  clients++;
+  io.emit('playerCount', {playerCount:clients})
   socket.on('NewClient', function() {
     io.to(socket.id).emit('new_message', {sender:'server',message : 'Looking for an opponent...'})
     if (Object.keys(queue).length > 0){
@@ -62,8 +60,7 @@ io.on('connection', function(socket) {
       console.log('queuing room; ' +socket.id+'chat' )
       queue[socket.id+'chat'] = socket      
     }
-      clients++;
-    });
+  });
 
   socket.on('checkFull', data =>{
     if (data && data.id !== null)

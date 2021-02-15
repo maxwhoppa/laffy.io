@@ -73,7 +73,6 @@ export type VideoAnalyzerState = {
         })
 
         this.props.handleWebcamChange(currentState)
-
       }// else {}
       //
       //may have to do some error handling -- if the video is stopped .... 

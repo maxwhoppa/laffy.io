@@ -295,8 +295,8 @@ export class PrivatePage extends Component<PrivatePageProps, PrivatePageState> {
             //     {(this.state.gameState === -1) ?this.Home(this.props) : <WebcamComponent/>} 
             // </div>
             <div className="container-fluid h-100" >
-            <div className="w-100 h-100 row"style={{marginLeft:"-10px"}}>
-              <div className="w-100 h-100 col-sm-4">
+            <div className="w-100 h-100 row">
+              <div className="w-100 h-100 col-sm-4" style={{paddingLeft:0}}>
              <WebcamComponentMemo
               handleWebcamChange={this.handleWebcamChange}
               configureVideo={this.configureVideo}

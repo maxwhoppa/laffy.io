@@ -3,8 +3,7 @@ import React, {Component} from 'react';
 // import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import {WebcamComponentMemo} from './WebcamComponent'
 import {VideoAnalyzerState} from './VideoAnalyzer'
-import {connectionUnderThreeSeconds,leaveRoom, socket, socketStuff} from '../api/sockets';
-import { animateScroll } from "react-scroll";
+import {leaveRoom, socket, socketStuff, privateSocketStuff} from '../api/sockets';
 import Background from '../pics/background.png';
 import BlackBackground from '../pics/black_background.png';
 
@@ -50,10 +49,12 @@ export type HomePageState = {
 
     countdown: number
 
+    started: boolean
   }
 
 type HomePageProps = {
-    width: any
+    width: any,
+    id: string | null
 }
 
 export class HomePage extends Component<HomePageProps, HomePageState> {
@@ -77,6 +78,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             winstreak:0,
             countdown:4,
             strikes: 5,
+            started: false,
         }
 
         this.nextButtonClick = this.nextButtonClick.bind(this)
@@ -86,7 +88,10 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
 
     onKeyPress(event: any){
         if(event.keyCode === 27) {
-            this.nextButtonClick();
+            if (this.props.id !== null)
+                this.rematchButtonClick();
+            else
+                this.nextButtonClick();
         }
     }
 
@@ -103,7 +108,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
 
         socket.on('leave', () =>{
             leaveRoom({initiator:false})
-            this.setState({gameState:0, countdown:4})
+            this.setState({gameState:0, countdown:4, started: false})
             if (intervalID){
                 window.clearInterval(intervalID);
             }
@@ -184,10 +189,20 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
     handleWebcamChange(VideoAnalyzerState: VideoAnalyzerState){
         var gameState = this.state.gameState;
         var strikes = this.state.strikes;
+        var started = this.state.started;
+
         if (VideoAnalyzerState.faceDetectionActive){
 
+            if (this.props.id !== null && !started){
+                privateSocketStuff(this.video?.srcObject, this.peerVideo, this.props.id)
+                started = true
+            }
+
             if (gameState === -1 && VideoAnalyzerState.numFaces !== 0){
-                gameState = 0
+                if (this.props.id !== null)
+                    gameState = 2
+                else 
+                    gameState = 0
             }
             else if (gameState === 0 && VideoAnalyzerState.numFaces === 0){
                 gameState = -1
@@ -226,7 +241,8 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
                 userSmiled: VideoAnalyzerState.userSmiled,
                 numFaces: VideoAnalyzerState.numFaces,
                 gameState: gameState,
-                strikes:strikes
+                strikes:strikes,
+                started:started
             });
         }
     }
@@ -252,11 +268,11 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
         </div>
 
         if (isMobile){
-            buttons =<div className="input-group mb-3" style={{position:"fixed", width:'50%', bottom:0, paddingRight: "20px", lineHeight: 'normal'}}>
-            <p className="w-100">Players Detected: {this.state.numFaces}</p>
-            {this.Rematch()}
-            {this.Button()}
-            </div>
+            buttons =<div className="input" style={{position:"fixed", width:'50%', left:'50%', bottom:0, paddingRight: "10px", paddingLeft:'10px', lineHeight: 'normal'}}>
+                {this.Rematch()}
+                {this.Button()}
+                </div>
+
             if (this.state.userSmiled){
                 tag = <img className="rounded mx-auto d-block" src={loading} alt='laffy logo' style={{
                     width: '15%',
@@ -281,13 +297,44 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             else 
                 tag = <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{width: "100%",position:"absolute", top:0, paddingRight: "0px"}}/>
         }
+
+        if (isMobile){
+            return (
+                // <div>
+                //     {(this.state.gameState === -1) ?this.Home(this.props) : <WebcamComponent/>} 
+                // </div>
+                <div className="container-fluid h-100" >
+                <div className="w-100 h-100 row">
+                  <div className="w-100 h-100" style={{paddingLeft:0}}>
+                 <WebcamComponentMemo
+                  handleWebcamChange={this.handleWebcamChange}
+                  configureVideo={this.configureVideo}
+                  width={this.props.width}
+                  />
+                  
+                  </div>
+                  <div className="h-100">
+                    <div className="mb-2 h-100">
+                        <Chat gameState={this.state.gameState} countdown={this.state.countdown} width={this.props.width}/>
+                    </div>
+                  </div>
+                  <div className="" >
+                    <div className="" style={{ position: 'fixed', top:'90%', bottom: '0px', lineHeight: 'normal', width: '100%', height: '10%',left: '0%'}}>
+                        {tag}
+                        {buttons}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+        }
         return (
             // <div>
             //     {(this.state.gameState === -1) ?this.Home(this.props) : <WebcamComponent/>} 
             // </div>
             <div className="container-fluid h-100" >
-            <div className="w-100 h-100 row"style={{marginLeft:"-10px"}}>
-              <div className="w-100 h-100 col-sm-4">
+            <div className="w-100 h-100 row">
+              <div className="w-100 h-100 col-sm-4" style={{paddingLeft:0}}>
              <WebcamComponentMemo
               handleWebcamChange={this.handleWebcamChange}
               configureVideo={this.configureVideo}
@@ -312,13 +359,55 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
     }
 
     rematchButtonClick(){
-        socket.emit('play_again')
-        this.setState({gameState:2.5})
+        if (this.state.gameState === 2 && this.state.numFaces > 0){
+            socket.emit('play_again')
+            this.setState({gameState:2.5})
+        }
     }
 
     Rematch(){
-        var button = <button style={{marginBottom:'5px'}} type="button" className="btn btn-success w-100 " onClick={() => this.rematchButtonClick()}>{'Rematch'}</button>
+        var button;
+        const { width } = this.props;
+        const isMobile = width <= 500;
+        
+        if (this.props.id !== null){
+            var phrase = "Loading..."
+            if (this.state.gameState === -1){
+                if (this.state.faceDetectionActive){
+                    phrase = "No Faces Detected"
+                }
+                button = <button type="button" className="btn btn-secondary w-100 h-100" disabled >{phrase}</button>
+            }
+            else if (this.state.gameState === 2){
+                if (this.state.faceDetectionActive && this.state.numFaces === 0)
+                    button = <button type="button" className="btn btn-secondary w-100 h-100" disabled >{'No Faces Detected'}</button>
 
+                button = <button type="button" className="btn btn-success w-100 h-100" onClick={() => this.rematchButtonClick()}>{'Ready Up'}</button>
+            }
+
+            if (isMobile){
+                if (this.props.id !== null){
+                    button = <div style={{position: 'fixed', height: '10%', bottom: '0px', lineHeight: 'normal', width: '100%', left: 0,}}>
+                        {button}
+                    </div>
+                }
+                else {
+                    button = <div style={{position: 'fixed', height: '10%', bottom: '0px', lineHeight: 'normal', width: '50%', left: 0, paddingRight:'1px'}}>
+                    {button}
+                </div>
+                }
+            }
+            return button
+        }
+
+
+        button = <button style={{marginBottom:'5px'}} type="button" className="btn btn-success w-100 h-100" onClick={() => this.rematchButtonClick()}>{'Rematch'}</button>
+
+        if (isMobile){
+            button = <div style={{position: 'fixed', height: '10%', bottom: '0px', lineHeight: 'normal', width: '50%', left: 0, paddingRight:'1px'}}>
+            {button}
+        </div>
+        }
         if (this.state.gameState === 2)
             return button
         else 
@@ -335,6 +424,12 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
     }
 
     Button(){
+        const { width } = this.props;
+        const isMobile = width <= 500;
+
+        if (this.props.id !== null)
+            return 
+        
         var phrase = "";
         var overhead = "Number of Players: " + this.state.numFaces;
         var button;
@@ -345,36 +440,48 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
             else if (this.state.numFaces === 0){
                 phrase = "No Faces Detected"
             }
-            button = <button type="button" className="btn btn-secondary w-100 " disabled onClick={() => this.nextButtonClick()}>{phrase}</button>
+            button = <button type="button" className="btn btn-secondary w-100 h-100" disabled onClick={() => this.nextButtonClick()}>{phrase}</button>
             
         }
         else if (this.state.gameState === 0 ){
             phrase = "Start"
             
-            button = <button type="button" className="btn btn-success w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+            button = <button type="button" className="btn btn-success w-100 h-100" onClick={() => this.nextButtonClick()}>{phrase}</button>
             
         } 
         else if (this.state.gameState > 0 && this.state.gameState < 1){
-            phrase = "Skip"
+            phrase = "Cancel And Leave"
             
-            button = <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+            button = <button type="button" className="btn btn-secondary w-100 h-100" onClick={() => this.nextButtonClick()}>{phrase}</button>
             
         }
         else if (this.state.gameState === 1){
-            phrase = "Stop"
+            phrase = "Leave Room"
             
-            button =   <button type="button" className="btn btn-danger w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+            button =   <button type="button" className="btn btn-danger w-100 h-100" onClick={() => this.nextButtonClick()}>{phrase}</button>
             
         }
         else if (this.state.gameState === 1.5){
             phrase = "Are You Sure?"
-            button =     <button type="button" className="btn btn-danger w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+            button =     <button type="button" className="btn btn-danger w-100 h-100" onClick={() => this.nextButtonClick()}>{phrase}</button>
             
         }
         else if (this.state.gameState === 2 || this.state.gameState === 2.5 ){
-            phrase = "Next"
-            button =     <button type="button" className="btn btn-secondary w-100 " onClick={() => this.nextButtonClick()}>{phrase}</button>
+            phrase = "Leave Room"
+            button =     <button type="button" className="btn btn-secondary w-100 h-100" onClick={() => this.nextButtonClick()}>{phrase}</button>
 
+        }
+        if (isMobile){
+            if (this.state.gameState !== 2){
+                button = <div style={{position: 'fixed', height: '10%', bottom: '0px', lineHeight: 'normal', width: '100%', left: 0,}}>
+                    {button}
+                </div>
+            }
+            else {
+                button = <div style={{position: 'fixed', height: '10%', bottom: '0px', lineHeight: 'normal', width: '50%', right: 0, paddingLeft:'1px'}}>
+                {button}
+            </div>
+            }
         }
 
         return(
@@ -448,12 +555,13 @@ export class Chat extends Component<ChatProps,ChatState> {
             this.setState({typing:false})
         })
         socket.on('new_message', (data: any) => {
+            var log;
             if (data.sender === 'server')
-                var log = this.state.log.concat('SERVER: '+ data.message);
+                log = this.state.log.concat('SERVER: '+ data.message);
             else if (data.sender === socket.id)
-                var log = this.state.log.concat('YOU: '+ data.message);
+                log = this.state.log.concat('YOU: '+ data.message);
             else 
-                var log = this.state.log.concat('OPPONENT: '+ data.message);
+                log = this.state.log.concat('OPPONENT: '+ data.message);
 
             this.setState({log:log});
             this.scrollToBottom();
@@ -509,8 +617,8 @@ export class Chat extends Component<ChatProps,ChatState> {
 
         if (isMobile)
             return (
-                <div className="input-group mb-3 fixed-bottom" style={{position : "fixed", width:'50%', bottom: 0}}>
-                <div style={{marginBottom:"5px",backgroundColor:"whitesmoke", height:"30vh"}} className="overflow-auto border w-100">
+                <div className="input-group mb-3 fixed-bottom" style={{position : "fixed", width:'100%',height:'35%', top: '50%'}}>
+                <div style={{backgroundColor:"whitesmoke", height:"100%"}} className="overflow-auto border w-100">
                 <ul id='chatlog' className="list-group" style={{ maxWidth: "100%", overflowX: "hidden", lineHeight: "normal"}}>
                     {this.state.log.map((message,i) => <li className="list-group-item" key={i} style={{textAlign:'left', border:'none', backgroundColor:"whitesmoke"}}>
                         {this.NameTag(message)}
@@ -525,7 +633,7 @@ export class Chat extends Component<ChatProps,ChatState> {
         else 
             return (
                 <div className="input-group mb-3 fixed-bottom" style={{position : "absolute", bottom: 0}}>
-                    <div style={{marginBottom:"5px",backgroundColor:"whitesmoke", height:"40vh"}} className="overflow-auto border w-100">
+                    <div style={{marginBottom:"5px",backgroundColor:"whitesmoke", height:"90vh"}} className="overflow-auto border w-100">
                     <ul id='chatlog' className="list-group" style={{ maxWidth: "100%", overflowX: "hidden", lineHeight: "normal"}}>
                         {this.state.log.map((message,i) => <li className="list-group-item" key={i} style={{textAlign:'left', border:'none', backgroundColor:"whitesmoke"}}>
                             {this.NameTag(message)}
@@ -540,12 +648,13 @@ export class Chat extends Component<ChatProps,ChatState> {
     }
 
     NameTag(message:string){
+        var tag;
         if (message.split(':')[0] === "SERVER")
-            var tag = <b style={{color:"grey"}}>SERVER:</b>
+            tag = <b style={{color:"grey"}}>SERVER:</b>
         else if (message.split(':')[0] === "YOU")
-            var tag = <b style={{color:"blue"}}>YOU:</b>
+            tag = <b style={{color:"blue"}}>YOU:</b>
         else
-            var tag = <b style={{color:"red"}}>OPPONENT:</b>
+            tag = <b style={{color:"red"}}>OPPONENT:</b>
 
         return tag
     }

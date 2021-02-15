@@ -4,10 +4,7 @@ import logo from '../pics/LAFFY_APP_MODEL_COLOR.png'
 import { HomePage } from './HomePage';
 import { PrivatePage } from './PrivatePage';
 import { socket} from '../api/sockets';
-
-
 import { Terms } from './Terms';
-import { FaceLandmarkNet } from 'face-api.js';
 
 
 
@@ -27,11 +24,12 @@ type LandingPageState = {
     inputValue: string,
     full: boolean,
     joined: boolean,
-    width: any
+    width: any,
+    playerCount: string
 }
 
 export class LandingPage extends Component<LandingPageProps,LandingPageState> {
-    
+
     constructor(props:LandingPageProps){
         super(props)
         this.state = {
@@ -41,6 +39,7 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
             full: false,
             joined: false,
             width: window.innerWidth,
+            playerCount: ''
         }
         this.handleClick = this.handleClick.bind(this);
         this.handleChange = this.handleChange.bind(this);
@@ -60,6 +59,10 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
 
         socket.on('roomOpen', () =>{
             this.setState({joined:true})
+        })
+
+        socket.on('playerCount', (data:any) =>{
+            this.setState({playerCount:''+data.playerCount})
         })
     }
 
@@ -88,15 +91,17 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
     }
     
     render(){
+        var playerNumber = this.state.playerCount;
         ($('[data-toggle="popover"]')as any).popover('dispose')
         if (this.state.joined)
-            return(<PrivatePage width = {this.state.width} id={this.state.inputValue}/>)
+            return(<HomePage width = {this.state.width} id={this.state.inputValue}/>)
         else if (this.state.game === gametype.NONE)
             return (
-                <div className="container-fluid h-100 mx-auto" >
+                <div className="h-100 mx-auto" style={{padding:'0'}} >
+                <h1 style={{position: 'absolute',right:'10px',top:'10px',fontSize: '1.5em',color: '#fcd766'}}>{playerNumber}+ Currently Playing</h1>
                 <div className="w-100 h-100 row mx-auto">
                 <div className="w-100 h-100 col-sm-4 mx-auto" style={{lineHeight: 'normal'}}>
-                <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{width: "80%", marginBottom:'60px'}}/>
+                <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{width: "80%", margin:'60px'}}/>
 
                 <button type="button" className="btn btn-info" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="Play With A Friend in a Private Room!" onClick={() => this.handleClick(gametype.PRIVATE)} style={{margin:'10px'}}>
                     Private Game
@@ -111,10 +116,6 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
                     Laffy.io is a video chat website where the first person who smile loses! Match up with friends or strangers and try to make the other person laugh!
                     <br/>
                     <br/>
-                    My name is Maxwell <a href='https://www.instagram.com/maxwhoppa/?hl=en'>(@Maxwhoppa)</a>. Laffy was created as a fun project idea that I wanted to turn into reality. If you like the game or want to send some feedback feel free to follow me / send me a message!
-                    If people show interest, I will continue to make improvements and add new features!
-
-                    <br/><br/>
                     <i>Works best in chrome for PC, Safari on iPhone. If you are stuck on the loading screen, ensure that your camera is properly set up. </i>
                 </p>
 
@@ -127,10 +128,11 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
             )
         else if (this.state.game === gametype.PRIVATE)
             return (
-                <div className="container-fluid h-100 mx-auto" >
+                <div className="h-100 mx-auto" style={{padding:'0'}} >
+                <h1 style={{position: 'absolute',right:'10px',top:'10px',fontSize: '1.5em',color: '#fcd766'}}>{playerNumber}+ Players Online</h1>
                 <div className="w-100 h-100 row mx-auto">
                 <div className="w-100 h-100 col-sm-4 mx-auto">
-                <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{width: "80%"}}/>
+                <img className="rounded mx-auto d-block" src={logo} alt='laffy logo' style={{width: "80%", margin:'60px'}}/>
 
                 {this.FullMessage()}
                 <input type="text" id='textEntry' onChange={this.handleChange} value={this.state.inputValue} className="form-control" placeholder="Room ID" aria-label="Username" aria-describedby="basic-addon1" />
@@ -144,7 +146,7 @@ export class LandingPage extends Component<LandingPageProps,LandingPageState> {
                 </div>
             )
         else if (this.state.game === gametype.PUBLIC)
-            return (<HomePage width = {this.state.width}/>)
+            return (<HomePage width = {this.state.width} id = {null}/>)
         else return (<Terms/>)
     }
 
