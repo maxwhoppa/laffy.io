@@ -379,24 +379,21 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
                 button = <button type="button" className="btn btn-secondary w-100 h-100" disabled >{phrase}</button>
             }
             else if (this.state.gameState === 2){
-                if (this.state.faceDetectionActive && this.state.numFaces === 0)
-                    button = <button type="button" className="btn btn-secondary w-100 h-100" disabled >{'No Faces Detected'}</button>
-
-                button = <button type="button" className="btn btn-success w-100 h-100" onClick={() => this.rematchButtonClick()}>{'Ready Up'}</button>
+                    button = <button type="button" className="btn btn-success w-100 h-100" onClick={() => this.rematchButtonClick()}>{'Ready Up'}</button>
             }
+
+            if (this.state.faceDetectionActive && this.state.numFaces === 0)
+                button = <button type="button" className="btn btn-secondary w-100 h-100" disabled >{'No Faces Detected'}</button>
+
+            if (this.state.numFaces > 0 && (this.state.gameState === 2.5 || this.state.gameState === .5 || this.state.gameState === 1))
+                button = <button type="button" className="btn btn-secondary w-100 h-100" disabled >{'Ready!'}</button>
 
             if (isMobile){
-                if (this.props.id !== null){
-                    button = <div style={{position: 'fixed', height: '10%', bottom: '0px', lineHeight: 'normal', width: '100%', left: 0,}}>
-                        {button}
-                    </div>
-                }
-                else {
-                    button = <div style={{position: 'fixed', height: '10%', bottom: '0px', lineHeight: 'normal', width: '50%', left: 0, paddingRight:'1px'}}>
+                button = <div style={{position: 'fixed', height: '10%', bottom: '0px', lineHeight: 'normal', width: '100%', left: 0,}}>
                     {button}
                 </div>
-                }
             }
+
             return button
         }
 
