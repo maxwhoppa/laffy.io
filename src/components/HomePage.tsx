@@ -401,7 +401,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
         button = <button style={{marginBottom:'5px'}} type="button" className="btn btn-success w-100 h-100" onClick={() => this.rematchButtonClick()}>{'Rematch'}</button>
 
         if (isMobile){
-            button = <div style={{position: 'fixed', height: '10%', bottom: '0px', lineHeight: 'normal', width: '50%', left: 0, paddingRight:'1px'}}>
+            button = <div style={{position: 'fixed', height: '10%', bottom: '0px', lineHeight: 'normal', width: '50%', left: 0,}}>
             {button}
         </div>
         }
@@ -475,7 +475,7 @@ export class HomePage extends Component<HomePageProps, HomePageState> {
                 </div>
             }
             else {
-                button = <div style={{position: 'fixed', height: '10%', bottom: '0px', lineHeight: 'normal', width: '50%', right: 0, paddingLeft:'1px'}}>
+                button = <div style={{position: 'fixed', height: '10%', bottom: '0px', lineHeight: 'normal', width: '50%', right: 0,}}>
                 {button}
             </div>
             }
