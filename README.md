@@ -1,4 +1,4 @@
-# (Laffy.io)[https://laffy.io]
+# Laffy.io
 
 ## The worlds first "You Laugh, You Lose web application"
 
